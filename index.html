@@ -4,17 +4,21 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" href="https://unpkg.com/@picocss/pico@1.*/css/pico.min.css">
 	<style>
+		.container {
+			max-width: 800px;
+		}
 		.current::after {
-			content: " \27F5 You are here";
+			content: "\27F5 you are here";
 			color: red;
 			font-weight: bold;
+			margin-left: 1rem;
 		}
 	</style>
 </head>
 
 <body>
 	<main class="container">
-		<h1>New York <b>Actually has 12 Seasons</b></h1>
+		<h1>New York <b>ACTUALLY HAS 12 SEASONS</b></h1>
 		<ul>
 			<li>Winter</li>
 			<li>Fool's Spring</li>
@@ -37,8 +41,12 @@
 
 		<footer>
 			<hr>
-			<small>This page is based on <a class="secondary" href="https://i.imgur.com/qT4WqjG.jpg">this meme</a> and was made by <a
-					class="secondary" href="https://peticol.as">Devon Peticolas</small>.
+			<small>
+				Based on <a class="secondary" href="https://i.imgur.com/qT4WqjG.jpg">this meme</a>.
+				Live weather from <a href="https://openweathermap.org/" class="secondary">Open Weather</a>.
+				Historical from <a class="secondary" href="https://weatherspark.com/">Weather Spark</a>.
+				Made by <a class="secondary" href="https://github.com/x">@x</a>.
+			</small>
 		</footer>
 	</main>
 	<script>
