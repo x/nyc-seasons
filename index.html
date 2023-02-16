@@ -45,7 +45,7 @@
 				Based on <a class="secondary" href="https://i.imgur.com/qT4WqjG.jpg">this meme</a>.
 				Live weather from <a href="https://openweathermap.org/" class="secondary">Open Weather</a>.
 				Historical from <a class="secondary" href="https://weatherspark.com/">Weather Spark</a>.
-				Made by <a class="secondary" href="https://github.com/x">@x</a>.
+				Made by <a class="secondary" href="https://github.com/x/nyc-seasons">@x</a>.
 			</small>
 		</footer>
 	</main>
@@ -144,7 +144,7 @@
 
 		// API - This is not my API key. I just found it.
 		const apiKey = "6d055e39ee237af35ca066f35474e9df";
-		const apiUrl = `http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}`;
+		const apiUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}`;
 
 		window.addEventListener("load", () => {
 			fetch(apiUrl)
