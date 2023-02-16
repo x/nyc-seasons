@@ -477,6 +477,7 @@ hour_temps_json = json.dumps(hour_temps_df.to_dict("index"))</pre>
 			let timeParts = now.toString().split(" ");
 			let amPm = now.getHours() < 12 ? "AM" : "PM";
 			let hour = now.getHours() % 12;
+			hour = hour === 0 ? 12 : hour;
 			let aboveBelow = tempDeviations > 0 ? "above" : "below";
 			let absTempDeviations = Math.abs(tempDeviations);
 			return `It's ${tempF.toFixed(1)} F which is ${absTempDeviations.toFixed(1)} standard deviations ${aboveBelow} the mean for ${timeParts[1]} ${timeParts[2]} at ${hour} ${amPm}.`;
