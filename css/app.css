@@ -39,3 +39,8 @@
 .seasons table tr:first-child td:first-child {
 	border-top: none;
 }
+
+/* We just like a border sometimes. */
+img {
+	border: 1px solid var(--table-border-color);
+}

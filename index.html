@@ -10,7 +10,7 @@
 	<main class="container">
 		<hgroup>
 			<h1>New York <b>ACTUALLY HAS 12 SEASONS</b></h1>
-			<h2><span id="explainer"></span></h2>
+			<h2><span id="explainer">Loading...</span></h2>
 		</hgroup>
 
 		<br>
@@ -35,8 +35,16 @@
 
 		<details>
 			<Summary><small>About this page...</small></Summary>
-			<p>This web page is based on <a class="secondary" href="https://i.imgur.com/qT4WqjG.jpg">this meme</a>. And,
-				while the meme is simple, this web page is not. In fact, it may even be a little over-engineered.</p>
+			<p>
+				This web page is based on <a class="secondary" href="https://i.imgur.com/qT4WqjG.jpg">this meme</a>.
+			</p>
+
+			<img src="https://i.imgur.com/qT4WqjG.jpg"
+				alt="A list of 12 seasons of new york with an arrow pointed to 'The Pollening'" />
+
+			<p>
+				And, while the meme is simple, this web page is... not. It may even be a little over-engineered.
+			</p>
 
 			<h2>How this Works</h2>
 
@@ -303,16 +311,17 @@ hour_temps_json = json.dumps(hour_temps_df.to_dict("index"))</pre>
 				temperature reading and compare it to our historical distribution.
 			</p>
 
-			<hr>
+			<h3>Deciding the Season</h3>
 
 			<p>
-				Using these features we dynamically update the arrow using the above logic. And an explainer to the data
-				we used to make this decision is appended below the header.
+				Using these features we update the arrow using the above logic. If it's late Winter, and we're 1.5
+				stddevs above the average for this day and hour, we're in 'Fool's Spring'. An explainer to the data we
+				used to make this decision is appended below the header.
 			</p>
 
 			<p>
-				This page was made by <a class="secondary" href="https://peticol.as">Devon Peticolas</a>. If you'd like to
-				see the source, fork, or suggest a change please check out it's repo <a class="secondary"
+				This page was made by <a class="secondary" href="https://peticol.as">Devon Peticolas</a>. If you'd like
+				to see the source, fork, or suggest a change please check out it's repo <a class="secondary"
 					href="https://github.com/x/nyc-seasons">on github</a>.
 			</p>
 		</details>

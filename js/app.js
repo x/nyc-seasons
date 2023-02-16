@@ -1,8 +1,8 @@
-// NYC
+// NYC - But actually Time Square...
 const lat = 40.7128;
 const lon = -73.9850;
 
-// API
+// API - Plz don't steal and do bad things with the key.
 const apiKey = "e1ac16beb06cba262e36e848533b3971";
 const apiUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}`;
 
