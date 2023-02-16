@@ -48,8 +48,8 @@
 <body>
 	<main class="container">
 		<hgroup>
-		<h1>New York <b>ACTUALLY HAS 12 SEASONS</b></h1>
-		<h2><span id="explainer"></span></h2>
+			<h1>New York <b>ACTUALLY HAS 12 SEASONS</b></h1>
+			<h2><span id="explainer"></span></h2>
 		</hgroup>
 
 		<br>
@@ -75,7 +75,7 @@
 		<details>
 			<Summary><small>About this page...</small></Summary>
 			<p>This web page is based on <a class="secondary" href="https://i.imgur.com/qT4WqjG.jpg">this meme</a>. And,
-				while the meme is simple, this web page is not.</p>
+				while the meme is simple, this web page is not. In fact, it may even be a little over-engineered.</p>
 
 			<h2>How this Works</h2>
 
@@ -331,8 +331,8 @@ import json
 hour_temps_json = json.dumps(hour_temps_df.to_dict("index"))</pre>
 
 			<p>
-				From here, we say that a "hot" day is anything that is 1.5 standard deviations above the mean and a "cold"
-				day is anything that is 1.5 standard deviations below the mean.
+				From here, we say that a "hot" day is anything that is 1.5 standard deviations above the mean and a
+				"cold" day is anything that is 1.5 standard deviations below the mean.
 			</p>
 
 			<p>
@@ -342,8 +342,11 @@ hour_temps_json = json.dumps(hour_temps_df.to_dict("index"))</pre>
 				temperature reading and compare it to our historical distribution.
 			</p>
 
+			<hr>
+
 			<p>
-				The result is an arrow which updates every hour and points to true current season of New York.
+				Using these features we dynamically update the arrow using the above logic. And an explainer to the data
+				we used to make this decision is appended below the header.
 			</p>
 
 			<p>Made by <a class="secondary" href="https://peticol.as">Devon Peticolas</a>.</p>
