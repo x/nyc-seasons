@@ -349,11 +349,7 @@ hour_temps_json = json.dumps(hour_temps_df.to_dict("index"))</pre>
 				we used to make this decision is appended below the header.
 			</p>
 
-			<p>
-				This page was made by <a class="secondary" href="https://peticol.as">Devon Peticolas</a>. If you'd like to
-				see the source, fork, or suggest a change please check out it's repo <a class="secondary"
-					href="https://github.com/x/nyc-seasons">on github</a>.
-			</p>
+			<p>Made by <a class="secondary" href="https://peticol.as">Devon Peticolas</a>.</p>
 		</details>
 
 	</main>
@@ -503,7 +499,8 @@ hour_temps_json = json.dumps(hour_temps_df.to_dict("index"))</pre>
 			"Actual Fall": 11
 		};
 
-		const apiKey = "e1ac16beb06cba262e36e848533b3971"
+		// API - This is not my API key. I just found it.
+		const apiKey = "6d055e39ee237af35ca066f35474e9df";
 		const apiUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}`;
 
 		window.addEventListener("load", () => {
