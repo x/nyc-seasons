@@ -68,7 +68,7 @@
 			<li>Second Summer</li>
 			<li>Actual Fall</li>
 		</ul>
-		
+
 		<br>
 		<br>
 		<br>
@@ -335,8 +335,8 @@ import json
 hour_temps_json = json.dumps(hour_temps_df.to_dict("index"))</pre>
 
 			<p>
-				From here, we say that a "hot" day is anything that is 2 standard deviations above the mean and a "cold"
-				day is anything that is 2 standard deviations below the mean.
+				From here, we say that a "hot" day is anything that is 1.5 standard deviations above the mean and a "cold"
+				day is anything that is 1.5 standard deviations below the mean.
 			</p>
 
 			<p>
@@ -386,12 +386,12 @@ hour_temps_json = json.dumps(hour_temps_df.to_dict("index"))</pre>
 
 		function checkIfCold(now, tempF) {
 			let { mean, std } = getMeanAndStd(now);
-			return tempF < mean - (2 * std);
+			return tempF < mean - (1.5 * std);
 		}
 
 		function checkIfHot(now, tempF) {
 			let { mean, std } = getMeanAndStd(now);
-			return tempF > mean + (2 * std);
+			return tempF > mean + (1.5 * std);
 		}
 
 		function getAstrologicalSubSeason(now) {
