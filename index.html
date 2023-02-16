@@ -1,0 +1,167 @@
+<html>
+
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="https://unpkg.com/@picocss/pico@1.*/css/pico.min.css">
+	<style>
+		.current::after {
+			content: " \27F5 You are here";
+			color: red;
+			font-weight: bold;
+		}
+	</style>
+</head>
+
+<body>
+	<main class="container">
+		<h1>New York <b>Actually has 12 Seasons</b></h1>
+		<ul>
+			<li>Winter</li>
+			<li>Fool's Spring</li>
+			<li>Second Winter</li>
+			<li>Spring of Deception</li>
+			<li>Third Winter</li>
+			<li>The Pollening</li>
+			<li>Actual Spring</li>
+			<li>Summer</li>
+			<li>Hell's Front Porch</li>
+			<li>False Fall</li>
+			<li>Second Summer</li>
+			<li>Actual Fall</li>
+		</ul>
+		
+		<br>
+		<br>
+		<br>
+		<br>
+
+		<footer>
+			<hr>
+			<small>Based on <a class="secondary" href="https://i.imgur.com/qT4WqjG.jpg">this meme</a> and made by <a
+					class="secondary" href="https://peticol.as">Devon Peticolas</small>.
+		</footer>
+	</main>
+	<script>
+		// NYC
+		const lat = 40.7128;
+		const lon = -73.9850;
+		
+		// Pulled from:
+		// https://weatherspark.com/y/23912/Average-Weather-in-New-York-City-New-York-United-States-Year-Round
+		// TODO: Get day and hour averages. Write a better isHot and isCold function.
+		const months = {
+			"Jan": { "High": 40, "Temp.": 33, "Low": 29 },
+			"Feb": { "High": 42, "Temp.": 35, "Low": 30 },
+			"Mar": { "High": 51, "Temp.": 42, "Low": 37 },
+			"Apr": { "High": 62, "Temp.": 53, "Low": 46 },
+			"May": { "High": 71, "Temp.": 63, "Low": 56 },
+			"Jun": { "High": 80, "Temp.": 72, "Low": 65 },
+			"Jul": { "High": 84, "Temp.": 77, "Low": 70 },
+			"Aug": { "High": 82, "Temp.": 75, "Low": 69 },
+			"Sep": { "High": 75, "Temp.": 69, "Low": 62 },
+			"Oct": { "High": 64, "Temp.": 58, "Low": 52 },
+			"Nov": { "High": 54, "Temp.": 48, "Low": 42 },
+			"Dec": { "High": 45, "Temp.": 39, "Low": 34 }
+		};
+		
+		function isHot(month, tempF) {
+			return tempF > month["High"];
+		}
+
+		function isCold(month, tempF) {
+			return tempF < month["Low"];
+		}
+
+		// TODO: Source some feedback on this.
+		function getSeason(month, tempF) {
+			if (month === "Dec" || month === "Jan" || month === "Feb") {
+				if (isHot(months[month], tempF)) {
+					return "Fool's Spring";
+				} else {
+					return "Winter";
+				}
+			}
+			if (month === "Mar") {
+				if (isCold(months[month], tempF)) {
+					return "Second Winter";
+				} else {
+					return "Spring of Deception";
+				}
+			}
+			if (month === "April" || month === "May") {
+				if (isCold(months[month], tempF)) {
+					return "Third Winter";
+				} else {
+					return "The Pollening";
+				}
+			}
+			if (month === "June" || month === "July") {
+				if (isHot(months[month], tempF)) {
+					return "Hell's Front Porch";
+				} else {
+					return "Summer";
+				}
+			}
+			if (month === "Aug" || month === "Sep") {
+				if (isHot(months[month], tempF)) {
+					return "Second Summer";
+				} else {
+					return "False Fall";
+				}
+			}
+			if (month === "Oct" || month === "Nov") {
+				if (isHot(months[month], tempF)) {
+					return "Second Summer";
+				} else {
+					return "Actual Fall";
+				}
+			}
+		}
+
+		// Mapping to the list index.
+		const seasonsIndexes = {
+			"Winter": 0,
+			"Fool's Spring": 1,
+			"Second Winter": 2,
+			"Spring of Deception": 3,
+			"Third Winter": 4,
+			"The Pollening": 5,
+			"Actual Spring": 6,
+			"Summer": 7,
+			"Hell's Front Porch": 8,
+			"False Fall": 9,
+			"Second Summer": 10,
+			"Actual Fall": 11
+		};
+
+		// API - This is not my API key. I just found it.
+		const apiKey = "6d055e39ee237af35ca066f35474e9df";
+		const apiUrl = `http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}`;
+
+		window.addEventListener("load", () => {
+			fetch(apiUrl)
+				.then((response) => {
+					return response.json();
+				})
+				.then((data) => {
+					console.log(data);
+
+					// F stands for Freedom
+					let tempK = data.main.feels_like;
+					let tempF = 1.8 * (tempK - 273) + 32;
+
+					let month = (new Date()).toString().split(" ")[1];
+					let monthData = months[month];
+					let season = getSeason(month, tempF);
+
+					console.log(tempK, tempF, monthData, season);
+
+					let seasonIndex = seasonsIndexes[season];
+					let seasonLi = document.querySelectorAll("li")[seasonIndex];
+					seasonLi.classList.add("current");
+				});
+		});
+	</script>
+</body>
+
+</html>
