@@ -468,6 +468,18 @@ hour_temps_json = json.dumps(hour_temps_df.to_dict("index"))</pre>
 			throw new Exception("Please email devon@peticol.as with the current date, time, and if you wore a jacket today.");
 		}
 
+		function getExplainerString(now, tempF) {
+			let { mean, std } = getMeanAndStd(now);
+			let tempDeviations = (tempF - mean) / std;
+			let timeParts = now.toString().split(" ");
+			let amPm = now.getHours() < 12 ? "AM" : "PM";
+			let hour = now.getHours() % 12;
+			let aboveBelow = tempDeviations > 0 ? "above" : "below";
+			let absTempDeviations = Math.abs(tempDeviations);
+			return `It's ${tempF.toFixed(1)} F which is ${absTempDeviations.toFixed(1)} standard deviations ${aboveBelow} the mean for ${timeParts[1]} ${timeParts[2]} at ${hour} ${amPm}.`;
+		}
+
+
 		// Mapping to the list index.
 		const seasonsIndexes = {
 			"Winter": 0,
@@ -509,9 +521,7 @@ hour_temps_json = json.dumps(hour_temps_df.to_dict("index"))</pre>
 					let seasonLi = document.querySelectorAll("li")[seasonIndex];
 					seasonLi.classList.add("current");
 
-					let { mean, std } = getMeanAndStd(now);
-					let tempDevs = (tempF - mean) / std;
-					let explainer = `It's ${tempF.toFixed(1)}°F which is ${tempDevs.toFixed(1)} standard deviations above the mean for this time and date.`;
+					let explainer = getExplainerString(now, tempF);
 					document.querySelector("#explainer").innerText = explainer;
 				});
 		});
