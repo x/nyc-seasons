@@ -47,7 +47,13 @@
 
 <body>
 	<main class="container">
+		<hgroup>
 		<h1>New York <b>ACTUALLY HAS 12 SEASONS</b></h1>
+		<h2><span id="explainer"></span></h2>
+		</hgroup>
+
+		<br>
+
 		<ul>
 			<li>Winter</li>
 			<li>Fool's Spring</li>
@@ -62,7 +68,7 @@
 			<li>Second Summer</li>
 			<li>Actual Fall</li>
 		</ul>
-
+		
 		<br>
 		<br>
 		<br>
@@ -370,18 +376,21 @@ hour_temps_json = json.dumps(hour_temps_df.to_dict("index"))</pre>
 			lateWinter: { start: "02-18", end: "03-20" },
 		}
 
-		function checkIfCold(dayOfYear, hour, tempF) {
-			let dayHour = `${dayOfYear.toString().padStart(3, "0")}-${hour.toString().padStart(2, "0")}`;
+		function getMeanAndStd(now) {
+			let dayOfYear = Math.floor((now - (new Date(now.getFullYear(), 0, 0))) / 1000 / 60 / 60 / 24);
+			let dayHour = `${dayOfYear.toString().padStart(3, "0")}-${now.getHours().toString().padStart(2, "0")}`;
 			let mean = temps[dayHour].mean;
 			let std = temps[dayHour].std;
-			console.log(dayHour, mean, std, tempF)
+			return { mean, std };
+		}
+
+		function checkIfCold(now, tempF) {
+			let { mean, std } = getMeanAndStd(now);
 			return tempF < mean - (2 * std);
 		}
 
-		function checkIfHot(dayOfYear, hour, tempF) {
-			let dayHour = `${dayOfYear.toString().padStart(3, "0")}-${hour.toString().padStart(2, "0")}`;
-			let mean = temps[dayHour].mean;
-			let std = temps[dayHour].std;
+		function checkIfHot(now, tempF) {
+			let { mean, std } = getMeanAndStd(now);
 			return tempF > mean + (2 * std);
 		}
 
@@ -399,10 +408,8 @@ hour_temps_json = json.dumps(hour_temps_df.to_dict("index"))</pre>
 		}
 
 		function getNYCSeason(now, tempF) {
-			let dayOfYear = Math.floor((now - (new Date(now.getFullYear(), 0, 0))) / 1000 / 60 / 60 / 24);
-			let hour = now.getHours();
-			let isHot = checkIfHot(dayOfYear, hour, tempF);
-			let isCold = checkIfCold(dayOfYear, hour, tempF);
+			let isHot = checkIfHot(now, tempF);
+			let isCold = checkIfCold(now, tempF);
 			let isMid = !isHot && !isCold;
 			let season = getAstrologicalSubSeason(now);
 			console.log(isHot, isCold, isMid, season)
@@ -505,6 +512,11 @@ hour_temps_json = json.dumps(hour_temps_df.to_dict("index"))</pre>
 					let seasonIndex = seasonsIndexes[season];
 					let seasonLi = document.querySelectorAll("li")[seasonIndex];
 					seasonLi.classList.add("current");
+
+					let { mean, std } = getMeanAndStd(now);
+					let tempDevs = (tempF - mean) / std;
+					let explainer = `It's ${tempF.toFixed(1)}°F which is ${tempDevs.toFixed(1)} standard deviations above the mean for this time and date.`;
+					document.querySelector("#explainer").innerText = explainer;
 				});
 		});
 	</script>
