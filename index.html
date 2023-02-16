@@ -7,11 +7,40 @@
 		.container {
 			max-width: 800px;
 		}
+
 		.current::after {
 			content: "\27F5 you are here";
 			color: red;
 			font-weight: bold;
 			margin-left: 1rem;
+		}
+
+		.seasons td {
+			border: 1px solid var(--table-border-color);
+			text-align: center;
+			padding: 0px;
+		}
+
+		.seasons th {
+			border: none;
+			border: 1px solid var(--table-border-color);
+		}
+
+		.seasons thead th {
+			text-align: center;
+		}
+
+		.seasons thead td {
+			/* top corner only */
+			border: none;
+		}
+
+		.seasons tbody th {
+			text-align: right;
+		}
+
+		.seasons table tr:first-child td:first-child {
+			border-top: none;
 		}
 	</style>
 </head>
@@ -33,97 +62,407 @@
 			<li>Second Summer</li>
 			<li>Actual Fall</li>
 		</ul>
-		
+
+		<br>
+		<br>
 		<br>
 		<br>
 		<br>
 		<br>
 
-		<footer>
-			<hr>
-			<small>
-				Based on <a class="secondary" href="https://i.imgur.com/qT4WqjG.jpg">this meme</a>.
-				Live weather from <a href="https://openweathermap.org/" class="secondary">Open Weather</a>.
-				Historical from <a class="secondary" href="https://weatherspark.com/">Weather Spark</a>.
-				Made by <a class="secondary" href="https://github.com/x/nyc-seasons">@x</a>.
-			</small>
-		</footer>
+		<details>
+			<Summary><small>About this page...</small></Summary>
+			<p>This web page is based on <a class="secondary" href="https://i.imgur.com/qT4WqjG.jpg">this meme</a>. And,
+				while the meme is simple, this web page is not.</p>
+
+			<h2>How this Works</h2>
+
+			<p>
+				My goal with this page to capture, not the <i>astrological</i> or <i>meterological</i> season of New
+				York, but the <i>experiential</i> season of the New Yorker. A creature who lives their lives outside of
+				the traditional American comforts of climate-controlled cars.
+			</p>
+
+			<p>
+				For example, if it's a hot in late astrological Winter, the New Yorker's brain knows it's not spring,
+				but is fooled into thinking they can wear a light jacket. Only to be sorely corrected by the city later
+				that night.
+			</p>
+
+			<p>This is the New Yorker experiencing <b>Fool's Spring</b>.</p>
+
+			<p>
+				Therefore, this web-page <b>updates dynamically</b> based on the <b>day of the year</b>, the <b>hour of
+					the day</b>, and the <b>real-time temperature in NYC</b>.
+			</p>
+
+			<p>It uses both live and 53 years of historical data from <a href="https://openweathermap.org/"
+					class="secondary">OpenWeatherMap.org</a>.
+			</p>
+
+			<h2>Methodology</h2>
+
+			<p>
+				To start, I mapped the meme's seasons to a two-dimensional grid of astrological sub-season and the
+				relative temperature of that season.
+			</p>
+
+			<p>
+				This part is more feeling than science.
+			</p>
+
+			<h4>Winter</h4>
+			<table class="seasons">
+				<thead>
+					<tr>
+						<td>
+							</th>
+						<th>Early</th>
+						<th>Mid</th>
+						<th>Late</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<th>Cold</th>
+						<td colspan="2" rowspan="2">Winter</td>
+						<td rowspan="2">Second<br>Winter</td>
+					</tr>
+					<tr>
+						<th>Mid</th>
+					</tr>
+					<tr>
+						<th>Warm</th>
+						<td colspan="3">Fools Spring</td>
+					</tr>
+			</table>
+
+
+			<h4>Spring</h4>
+			<table class="seasons">
+				<thead>
+					<tr>
+						<td>
+							</th>
+						<th>Early</th>
+						<th>Mid</th>
+						<th>Late</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<th>Cold</th>
+						<td colspan="3">Third Winter</td>
+					</tr>
+					<tr>
+						<th>Mid</th>
+						<td rowspan="2">Spring of<br>Deception</td>
+						<td colspan="2">Actual Spring</td>
+					</tr>
+					<tr>
+						<th>Warm</th>
+						<td colspan="2">The Pollening</td>
+					</tr>
+			</table>
+
+			<h4>Summer</h4>
+			<table class="seasons">
+				<thead>
+					<tr>
+						<td>
+							</th>
+						<th>Early</th>
+						<th>Mid</th>
+						<th>Late</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<th>Cold</th>
+						<td colspan="2" rowspan="2">Summer</td>
+						<td rowspan="2">False Fall</td>
+					</tr>
+					<tr>
+						<th>Mid</th>
+					</tr>
+					<tr>
+						<th>Warm</th>
+						<td colspan="3">Hell's Front Porch</td>
+					</tr>
+			</table>
+
+			<h4>Fall</h4>
+			<table class="seasons">
+				<thead>
+					<tr>
+						<td>
+							</th>
+						<th>Early</th>
+						<th>Mid</th>
+						<th>Late</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<th>Cold</th>
+						<td colspan="3">Winter</td>
+					</tr>
+					<tr>
+						<th>Mid</th>
+						<td colspan="3">Actual Fall</td>
+					</tr>
+					<tr>
+						<th>Warm</th>
+						<td colspan="3">Second Summer</td>
+					</tr>
+			</table>
+
+			<p>
+				Next, I needed to define these axes.
+			</p>
+
+			<h3>Sub-Seasons</h3>
+
+			<p>
+				For the early, mid, and late I divided the seasons by into three roughly equal segments using their
+				astrological definitions.
+			</p>
+
+			<table>
+				<thead>
+					<tr>
+						<td></td>
+						<th>Span</th>
+						<th>Start</th>
+						<th>End</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<th rowspan="3">Winter</th>
+						<th>Early</th>
+						<td>Dec 21</td>
+						<td>Jan 20</td>
+					</tr>
+					<tr>
+						<th>Mid</th>
+						<td>Jan 20</td>
+						<td>Feb 19</td>
+					</tr>
+					<tr>
+						<th>Late</th>
+						<td>Feb 19</td>
+						<td>Mar 20</td>
+					<tr>
+						<th rowspan="3">Spring</th>
+						<th>Early</th>
+						<td>Mar 20</td>
+						<td>Apr 19</td>
+					</tr>
+					<tr>
+						<th>Mid</th>
+						<td>Apr 19</td>
+						<td>May 19</td>
+					</tr>
+					<tr>
+						<th>Late</th>
+						<td>May 22</td>
+						<td>Jun 21</td>
+					</tr>
+					<tr>
+						<th rowspan="3">Summer</th>
+						<th>Early</th>
+						<td>Jun 21</td>
+						<td>Jul 21</td>
+					</tr>
+					<tr>
+						<th>Mid</th>
+						<td>Jul 21</td>
+						<td>Aug 22</td>
+					</tr>
+					<tr>
+						<th>Late</th>
+						<td>Aug 22</td>
+						<td>Sep 22</td>
+					</tr>
+					<tr>
+						<th rowspan="3">Fall</th>
+						<th>Early</th>
+						<td>Sep 22</td>
+						<td>Oct 22</td>
+					</tr>
+					<tr>
+						<th>Mid</th>
+						<td>Oct 22</td>
+						<td>Nov 21</td>
+					</tr>
+					<tr>
+						<th>Late</th>
+						<td>Nov 21</td>
+						<td>Dec 21</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<p><small><i>Ranges are inclusive start and exclusive end.</i></small></p>
+
+			<h3>Historical Temperature Distributions</h3>
+
+			<p>
+				Next, I built a baseline for NYC weather by day of year and hour of day. I pulled hourly temperature
+				data for NYC from Jan 1 1979 to Jan 1 2023 and computed a median and standard deviation for every hour
+				of every day of the year.
+			</p>
+
+			<p>
+				If you're interested in exploring this data, it's available in the repo <a class="secondary"
+					href="https://github.com/x/nyc-seasons">here</a>.
+			</p>
+
+			<pre>import pandas as pd
+weather_df = pd.read_csv("nyc_weather.csv")
+weather_df["dt_datetime"] = pd.to_datetime(weather_df.dt_iso.str.replace(" UTC", ""))
+weather_df["day_hour"] = weather_df.dt_datetime.dt.strftime("%j-%H")
+weather_df = weather_df.groupby(by="day_hour").aggregate({"feels_like": ["mean", "std"]})
+hour_temps_df = df.groupby(by="day_hour").aggregate({"feels_like": ["mean", "std"]})["feels_like"]
+import json
+hour_temps_json = json.dumps(hour_temps_df.to_dict("index"))</pre>
+
+			<p>
+				From here, we say that a "hot" day is anything that is 2 standard deviations above the mean and a "cold"
+				day is anything that is 2 standard deviations below the mean.
+			</p>
+
+			<p>
+				Now that we have a baseline for what is "normal" we can dynamically compare the current temperature our
+				baseline and decide if it's hot out by calling <a href="https://openweathermap.org/"
+					class="secondary">OpenWeatherMap.org</a> every time the page loads. We use Time Square for our live
+				temperature reading and compare it to our historical distribution.
+			</p>
+
+			<p>
+				The result is an arrow which updates every hour and points to true current season of New York.
+			</p>
+
+			<p>Made by <a class="secondary" href="https://peticol.as">Devon Peticolas</a>.</p>
+		</details>
+
 	</main>
+	<script src="./temps.js"></script>
 	<script>
 		// NYC
 		const lat = 40.7128;
 		const lon = -73.9850;
-		
-		// Pulled from:
-		// https://weatherspark.com/y/23912/Average-Weather-in-New-York-City-New-York-United-States-Year-Round
-		// TODO: Get day and hour averages. Write a better isHot and isCold function.
-		const months = {
-			"Jan": { "High": 40, "Temp.": 33, "Low": 29 },
-			"Feb": { "High": 42, "Temp.": 35, "Low": 30 },
-			"Mar": { "High": 51, "Temp.": 42, "Low": 37 },
-			"Apr": { "High": 62, "Temp.": 53, "Low": 46 },
-			"May": { "High": 71, "Temp.": 63, "Low": 56 },
-			"Jun": { "High": 80, "Temp.": 72, "Low": 65 },
-			"Jul": { "High": 84, "Temp.": 77, "Low": 70 },
-			"Aug": { "High": 82, "Temp.": 75, "Low": 69 },
-			"Sep": { "High": 75, "Temp.": 69, "Low": 62 },
-			"Oct": { "High": 64, "Temp.": 58, "Low": 52 },
-			"Nov": { "High": 54, "Temp.": 48, "Low": 42 },
-			"Dec": { "High": 45, "Temp.": 39, "Low": 34 }
-		};
-		
-		function isHot(month, tempF) {
-			return tempF > month["High"];
+
+		// Seasons
+		const astrologicalSubSeasons = {
+			earlySpring: { start: "03-20", end: "04-19" },
+			midSpring: { start: "04-19", end: "05-19" },
+			lateSpring: { start: "05-22", end: "06-21" },
+			earlySummer: { start: "06-21", end: "07-21" },
+			midSummer: { start: "07-21", end: "08-22" },
+			lateSummer: { start: "08-22", end: "09-22" },
+			earlyFall: { start: "09-22", end: "10-22" },
+			midFall: { start: "10-22", end: "11-21" },
+			lateFall: { start: "11-21", end: "12-21" },
+			earlyWinter: { start: "00-21", end: "01-19" },
+			midWinter: { start: "01-19", end: "02-18" },
+			lateWinter: { start: "02-18", end: "03-20" },
 		}
 
-		function isCold(month, tempF) {
-			return tempF < month["Low"];
+		function checkIfCold(dayOfYear, hour, tempF) {
+			let dayHour = `${dayOfYear.toString().padStart(3, "0")}-${hour.toString().padStart(2, "0")}`;
+			let mean = temps[dayHour].mean;
+			let std = temps[dayHour].std;
+			console.log(dayHour, mean, std, tempF)
+			return tempF < mean - (2 * std);
 		}
 
-		// TODO: Source some feedback on this.
-		function getSeason(month, tempF) {
-			if (month === "Dec" || month === "Jan" || month === "Feb") {
-				if (isHot(months[month], tempF)) {
+		function checkIfHot(dayOfYear, hour, tempF) {
+			let dayHour = `${dayOfYear.toString().padStart(3, "0")}-${hour.toString().padStart(2, "0")}`;
+			let mean = temps[dayHour].mean;
+			let std = temps[dayHour].std;
+			return tempF > mean + (2 * std);
+		}
+
+		function getAstrologicalSubSeason(now) {
+			let day = now.getDate();
+			let month = now.getMonth();
+			let date = `${(month + 1).toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
+			for (let subSeason in astrologicalSubSeasons) {
+				let subSeasonRange = astrologicalSubSeasons[subSeason];
+				if (date >= subSeasonRange.start && date < subSeasonRange.end) {
+					return subSeason;
+				}
+			}
+			throw new Error("Date not in any sub season: " + date);
+		}
+
+		function getNYCSeason(now, tempF) {
+			let dayOfYear = Math.floor((now - (new Date(now.getFullYear(), 0, 0))) / 1000 / 60 / 60 / 24);
+			let hour = now.getHours();
+			let isHot = checkIfHot(dayOfYear, hour, tempF);
+			let isCold = checkIfCold(dayOfYear, hour, tempF);
+			let isMid = !isHot && !isCold;
+			let season = getAstrologicalSubSeason(now);
+			console.log(isHot, isCold, isMid, season)
+
+			if (season.match("Winter")) {
+				if (isCold || isMid) {
+					if (season === "earlyWinter" || season === "midWinter") {
+						return "Winter";
+					}
+					if (season === "lateWinter") {
+						return "Second Winter";
+					}
+				}
+				if (isHot) {
 					return "Fool's Spring";
-				} else {
+				}
+			}
+			if (season.match("Spring")) {
+				if (isCold) {
+					return "Third Winter";
+				}
+				if (isMid || isHot) {
+					if (season === "earlySpring") {
+						return "Spring of Deception";
+					}
+					if (season === "midSpring" || season === "lateSpring") {
+						if (isMid) {
+							return "Actual Spring";
+						}
+						if (isHot) {
+							return "The Pollening";
+						}
+					}
+				}
+			}
+			if (season.match("Summer")) {
+				if (isHot) {
+					return "Hell's Front Porch";
+				}
+				if (isMid || isCold) {
+					if (season === "earlySummer" || season === "midSummer") {
+						return "Summer";
+					}
+					if (season === "lateSummer") {
+						return "False Fall";
+					}
+				}
+			}
+			if (season.match("Fall")) {
+				if (isCold) {
 					return "Winter";
 				}
-			}
-			if (month === "Mar") {
-				if (isCold(months[month], tempF)) {
-					return "Second Winter";
-				} else {
-					return "Spring of Deception";
-				}
-			}
-			if (month === "April" || month === "May") {
-				if (isCold(months[month], tempF)) {
-					return "Third Winter";
-				} else {
-					return "The Pollening";
-				}
-			}
-			if (month === "June" || month === "July") {
-				if (isHot(months[month], tempF)) {
-					return "Hell's Front Porch";
-				} else {
-					return "Summer";
-				}
-			}
-			if (month === "Aug" || month === "Sep") {
-				if (isHot(months[month], tempF)) {
-					return "Second Summer";
-				} else {
-					return "False Fall";
-				}
-			}
-			if (month === "Oct" || month === "Nov") {
-				if (isHot(months[month], tempF)) {
-					return "Second Summer";
-				} else {
+				if (isMid) {
 					return "Actual Fall";
 				}
+				if (isHot) {
+					return "Second Summer";
+				}
 			}
+			throw new Exception("Please email devon@peticol.as with the current date, time, and if you wore a jacket today.");
 		}
 
 		// Mapping to the list index.
@@ -158,11 +497,10 @@
 					let tempK = data.main.feels_like;
 					let tempF = 1.8 * (tempK - 273) + 32;
 
-					let month = (new Date()).toString().split(" ")[1];
-					let monthData = months[month];
-					let season = getSeason(month, tempF);
+					let now = new Date();
+					let season = getNYCSeason(now, tempF);
 
-					console.log(tempK, tempF, monthData, season);
+					console.log(tempF, season);
 
 					let seasonIndex = seasonsIndexes[season];
 					let seasonLi = document.querySelectorAll("li")[seasonIndex];
