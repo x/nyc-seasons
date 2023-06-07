@@ -5,6 +5,7 @@ const lon = -73.9850;
 // API - Plz don't steal and do bad things with the key.
 const apiKey = "e1ac16beb06cba262e36e848533b3971";
 const apiUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}`;
+const aqiUrl = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`;
 
 // Seasons
 const astrologicalSubSeasons = {
@@ -69,7 +70,7 @@ function getAstrologicalSubSeason(now) {
 	throw new Error("Date not in any sub season: " + date);
 }
 
-function getNYCSeason(now, tempF) {
+function getNYCSeason(now, tempF, aqiScore) {
 	let isHot = checkIfHot(now, tempF);
 	let isCold = checkIfCold(now, tempF);
 	let isMid = !isHot && !isCold;
@@ -108,7 +109,7 @@ function getNYCSeason(now, tempF) {
 		}
 	}
 	if (season.match("Summer")) {
-		if (isHot) {
+		if (isHot || aqiScore > 2) {
 			return "Hell's Front Porch";
 		}
 		if (isMid || isCold) {
@@ -134,7 +135,21 @@ function getNYCSeason(now, tempF) {
 	throw new Exception("Please email devon@peticol.as with the current date, time, and if you wore a jacket today.");
 }
 
-function getExplainerString(now, tempF) {
+function describeAqi(aqiScore) {
+	if (aqiScore === 1) {
+		return "good";
+	} else if (aqiScore === 2) {
+		return "fair";
+	} else if (aqiScore === 3) {
+		return "not great";
+	} else if (aqiScore === 4) {
+		return "poor";
+	} else {
+		return "very poor";
+	}
+}
+
+function getExplainerString(now, tempF, aqiScore) {
 	let { mean, std } = getMeanAndStd(now);
 	let tempDeviations = (tempF - mean) / std;
 	let timeParts = now.toString().split(" ");
@@ -143,7 +158,11 @@ function getExplainerString(now, tempF) {
 	hour = hour === 0 ? 12 : hour;
 	let aboveBelow = tempDeviations > 0 ? "above" : "below";
 	let absTempDeviations = Math.abs(tempDeviations);
-	return `It's ${tempF.toFixed(1)}\u00B0F which is ${absTempDeviations.toFixed(1)} standard deviations ${aboveBelow} the mean of ${mean.toFixed(1)}\u00B0F for  ${hour} ${amPm}, ${timeParts[1]} ${timeParts[2]}`;
+	let str = `It's ${tempF.toFixed(1)}\u00B0F which is ${absTempDeviations.toFixed(1)} standard deviations ${aboveBelow} the mean of ${mean.toFixed(1)}\u00B0F for ${hour} ${amPm}, ${timeParts[1]} ${timeParts[2]}`;
+	if (aqiScore > 2) {
+		str += `\nThe air quality is "${describeAqi(aqiScore)}"`;
+	}
+	return str;
 }
 
 window.addEventListener("load", () => {
@@ -151,23 +170,34 @@ window.addEventListener("load", () => {
 		.then((response) => {
 			return response.json();
 		})
-		.then((data) => {
-			console.log(data);
+		.then((weatherData) => {
+			console.log(weatherData);
 
-			// F stands for Freedom
-			let tempK = data.main.feels_like;
-			let tempF = 1.8 * (tempK - 273) + 32;
+			fetch(aqiUrl)
+				.then((response) => {
+					return response.json();
+				})
+				.then((aqiData) => {
+					console.log(aqiData);
 
-			let now = new Date();
-			let season = getNYCSeason(now, tempF);
+					// F stands for Freedom
+					let tempK = weatherData.main.feels_like;
+					let tempF = 1.8 * (tempK - 273) + 32;
+					
+					// https://openweathermap.org/api/air-pollution
+					let aqiScore = aqiData.list[0].main.aqi;
 
-			console.log(tempF, season);
+					let now = new Date();
+					let season = getNYCSeason(now, tempF, aqiScore);
 
-			let seasonIndex = seasonsIndexes[season];
-			let seasonLi = document.querySelectorAll("li")[seasonIndex];
-			seasonLi.classList.add("current");
+					console.log(tempF, season);
 
-			let explainer = getExplainerString(now, tempF);
-			document.querySelector("#explainer").innerText = explainer;
+					let seasonIndex = seasonsIndexes[season];
+					let seasonLi = document.querySelectorAll("li")[seasonIndex];
+					seasonLi.classList.add("current");
+
+					let explainer = getExplainerString(now, tempF, aqiScore);
+					document.querySelector("#explainer").innerText = explainer;
 		});
+	});
 });
