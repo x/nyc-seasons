@@ -89,7 +89,12 @@ function getNYCSeason(now, tempF, aqiScore) {
 		if (isHot) {
 			return "Fool's Spring";
 		}
+
+	// In non-winter seasons, if the AQI is bad, it's always Hell's Front Porch.
+	} else if (aqiScore > 2) {
+		return "Hell's Front Porch";
 	}
+
 	if (season.match("Spring")) {
 		if (isCold) {
 			return "Third Winter";
@@ -108,8 +113,9 @@ function getNYCSeason(now, tempF, aqiScore) {
 			}
 		}
 	}
+
 	if (season.match("Summer")) {
-		if (isHot || aqiScore > 2) {
+		if (isHot) {
 			return "Hell's Front Porch";
 		}
 		if (isMid || isCold) {
@@ -121,6 +127,7 @@ function getNYCSeason(now, tempF, aqiScore) {
 			}
 		}
 	}
+
 	if (season.match("Fall")) {
 		if (isCold) {
 			return "Winter";
@@ -137,15 +144,15 @@ function getNYCSeason(now, tempF, aqiScore) {
 
 function describeAqi(aqiScore) {
 	if (aqiScore === 1) {
-		return "good";
+		return "Good";
 	} else if (aqiScore === 2) {
-		return "fair";
+		return "Fair";
 	} else if (aqiScore === 3) {
-		return "not great";
+		return "Moderate";
 	} else if (aqiScore === 4) {
-		return "poor";
+		return "Poor";
 	} else {
-		return "very poor";
+		return "Very Poor";
 	}
 }
 
@@ -160,7 +167,7 @@ function getExplainerString(now, tempF, aqiScore) {
 	let absTempDeviations = Math.abs(tempDeviations);
 	let str = `It's ${tempF.toFixed(1)}\u00B0F which is ${absTempDeviations.toFixed(1)} standard deviations ${aboveBelow} the mean of ${mean.toFixed(1)}\u00B0F for ${hour} ${amPm}, ${timeParts[1]} ${timeParts[2]}`;
 	if (aqiScore > 2) {
-		str += `\nThe air quality is "${describeAqi(aqiScore)}"`;
+		str += `\nThe AQI is "${describeAqi(aqiScore)}"`;
 	}
 	return str;
 }
