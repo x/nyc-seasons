@@ -166,9 +166,6 @@ function getExplainerString(now, tempF, aqiScore) {
 	let aboveBelow = tempDeviations > 0 ? "above" : "below";
 	let absTempDeviations = Math.abs(tempDeviations);
 	let str = `It's ${tempF.toFixed(1)}\u00B0F which is ${absTempDeviations.toFixed(1)} standard deviations ${aboveBelow} the mean of ${mean.toFixed(1)}\u00B0F for ${hour} ${amPm}, ${timeParts[1]} ${timeParts[2]}`;
-	if (aqiScore > 3) {
-		str += `\nThe AQI is "${describeAqi(aqiScore)}"`;
-	}
 	return str;
 }
 
