@@ -73,6 +73,7 @@ details {
 #capture {
 	padding: 1rem;
 	margin: -1rem;
+	letter-spacing: 0.01px;
 }
 
 /* Use the fancy SVGs instead of bullets. */
