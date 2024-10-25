@@ -39,6 +39,9 @@ const seasonsIndexes = {
 	"Actual Fall": 11
 };
 
+var imageFile = null;
+var imageUrl = null;
+
 function getMeanAndStd(now) {
 	let dayOfYear = Math.floor((now - (new Date(now.getFullYear(), 0, 0))) / 1000 / 60 / 60 / 24);
 	let dayHour = `${dayOfYear.toString().padStart(3, "0")}-${now.getHours().toString().padStart(2, "0")}`;
@@ -220,6 +223,20 @@ window.addEventListener("load", () => {
 
 					let explainer = getExplainerString(now, tempF, aqiScore);
 					document.querySelector("#explainer").innerText = explainer;
+		}).then(() => {
+			html2canvas(document.getElementById('capture'))
+			.then(function(canvas) {
+				// Convert the canvas to a data URL
+				canvas.toBlob(function(blob) {
+					imageFile = new File([blob], '12seasons-nyc-' + dateStr() + '.png', { type: 'image/png' });
+					imageUrl = canvas.toDataURL('image/png');
+				});
+			}).then(() => {
+				document.getElementById('download-btn').style.display = 'inline-block';
+				if (navigator.canShare({ files: [imageFile] })) {
+					document.getElementById('share-btn').style.display = 'inline-block';
+				}
+			});
 		});
 	});
 });
@@ -235,40 +252,18 @@ function dateStr() {
 
 document.getElementById('share-btn').addEventListener('click', function(event) {
 	event.preventDefault(); // Prevent default anchor behavior
-    html2canvas(document.getElementById('capture')).then(function(canvas) {
-        // Convert the canvas to a data URL
-        canvas.toBlob(function(blob) {
-            // Check if the Web Share API is supported
-            if (navigator.share) {
-                const file = new File([blob], '12seasons-nyc-' + dateStr() + '.png', { type: 'image/png' });
-
-                navigator.share({
-                    title: '12seasons.nyc - ' + dateStr(),
-					text: '',
-                    files: [file],
-                })
-                .then(() => console.log('Successfully shared'))
-                .catch((error) => console.error('Error sharing:', error));
-            } else {
-                console.log('Web Share API is not supported on this browser.');
-                alert('Sharing is not supported in this browser.');
-            }
-        });
-    });
+	navigator.share({
+		title: '12seasons.nyc - ' + dateStr(),
+		files: [imageFile],
+	})
+	.then(() => console.log('Successfully shared'))
+	.catch((error) => console.error('Error sharing:', error));
 });
 
 document.getElementById('download-btn').addEventListener('click', function(event) {
 	event.preventDefault(); // Prevent default anchor behavior
-    html2canvas(document.getElementById('capture')).then(function(canvas) {
-        // Create a data URL and trigger download
-        const link = document.createElement('a');
-        link.href = canvas.toDataURL('image/png');
-        link.download = '12seasons-nyc-' + dateStr() + '.png'; // The filename for download
-        link.click();
-    });
+	const link = document.createElement('a');
+	link.href = imageUrl;
+	link.download = '12seasons-nyc-' + dateStr() + '.png'; // The filename for download
+	link.click();
 });
-
-/* Reveal share-btn if Web Share API is supported */
-if (navigator.canShare({ files })) {
-	document.getElementById('share-btn').style.display = 'inline-block';
-}
