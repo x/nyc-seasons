@@ -223,23 +223,25 @@ window.addEventListener("load", () => {
 
 					let explainer = getExplainerString(now, tempF, aqiScore);
 					document.querySelector("#explainer").innerText = explainer;
-		}).then(() => {
-			html2canvas(document.getElementById('capture'))
-			.then(function(canvas) {
-				// Convert the canvas to a data URL
-				canvas.toBlob(function(blob) {
-					imageFile = new File([blob], '12seasons-nyc-' + dateStr() + '.png', { type: 'image/png' });
-					imageUrl = canvas.toDataURL('image/png');
+					// Ensure DOM updates before running html2canvas
+					requestAnimationFrame(() => {
+						html2canvas(document.getElementById('capture'))
+							.then(function (canvas) {
+								// Convert the canvas to a data URL
+								canvas.toBlob(function (blob) {
+									imageFile = new File([blob], '12seasons-nyc-' + dateStr() + '.png', { type: 'image/png' });
+									imageUrl = canvas.toDataURL('image/png');
+								});
+							}).then(() => {
+								document.getElementById('download-btn').style.display = 'inline-block';
+								if (navigator.canShare({ files: [imageFile] })) {
+									document.getElementById('share-btn').style.display = 'inline-block';
+								}
+							});
+					});
 				});
-			}).then(() => {
-				document.getElementById('download-btn').style.display = 'inline-block';
-				if (navigator.canShare({ files: [imageFile] })) {
-					document.getElementById('share-btn').style.display = 'inline-block';
-				}
 			});
 		});
-	});
-});
 
 
 function dateStr() {
