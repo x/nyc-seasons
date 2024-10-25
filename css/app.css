@@ -1,14 +1,30 @@
+:root:not([data-theme=dark]), [data-theme=light] {
+  --background-color: #fdfdfd;
+}
+
 /* Make the site a little more narrow. */
-.container {
-	max-width: 800px;
+@media (min-width:992px){
+	.container{max-width:800px}
+}
+@media (min-width:1200px){
+	.container{max-width:800px}
 }
 
 /* Class for the arrow. */
-.current::after {
-	content: "\27F5 you are here";
-	color: red;
+.you-are-here {
+	display: none;
+	background-color: red;
+	color: white;
+	padding: 0.2rem;
+	padding-right: 0.5rem;
+	vertical-align: center;
+	border-radius: 0.2rem;
 	font-weight: bold;
 	margin-left: 1rem;
+}
+
+.current .you-are-here{
+	display: inline;
 }
 
 /* Tweaks for the seasons tables in the methodology section. */
@@ -43,4 +59,27 @@
 /* We just like a border sometimes. */
 img {
 	border: 1px solid var(--table-border-color);
+}
+
+details summary {
+	color: unset;
+}
+
+details {
+	border: none;
+}
+
+/* When capturing, we want a little padding. Undo that padding with negative margin. */
+#capture {
+	padding: 1rem;
+	margin: -1rem;
+}
+
+/* Use the fancy SVGs instead of bullets. */
+ul {
+	padding-left: 0;
+}
+
+ul li {
+	list-style-type: none;
 }

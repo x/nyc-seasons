@@ -163,9 +163,27 @@ function getExplainerString(now, tempF, aqiScore) {
 	let amPm = now.getHours() < 12 ? "AM" : "PM";
 	let hour = now.getHours() % 12;
 	hour = hour === 0 ? 12 : hour;
-	let aboveBelow = tempDeviations > 0 ? "above" : "below";
 	let absTempDeviations = Math.abs(tempDeviations);
-	let str = `It's ${tempF.toFixed(1)}\u00B0F which is ${absTempDeviations.toFixed(1)} standard deviations ${aboveBelow} the mean of ${mean.toFixed(1)}\u00B0F for ${hour} ${amPm}, ${timeParts[1]} ${timeParts[2]}`;
+	let stddevPrefix = '';
+	if (absTempDeviations < 0.5) {
+		stddevPrefix = "a mere ";
+	}
+	if (absTempDeviations > 3) {
+		stddevPrefix = "an astonishing ";
+	}
+	let str = '';
+	if (absTempDeviations < 0.05) {
+		str = `It is currently almost the exact temperature expected for ${timeParts[1]} ${timeParts[2]}. How funny.`;
+	} else {
+		let warmerColder = tempDeviations > 0 ? "warmer" : "colder";
+		str = `It is currently ${stddevPrefix}${absTempDeviations.toFixed(2)} standard deviations ${warmerColder} than expected for ${timeParts[1]} ${timeParts[2]}.`;
+		if (absTempDeviations > 2.5) {
+			str += ` You poor bastard.`;
+		}
+	}
+	if (aqiScore > 2) {
+		str += `\nThe air quality is "${describeAqi(aqiScore)}"`;
+	}
 	return str;
 }
 
@@ -187,7 +205,7 @@ window.addEventListener("load", () => {
 					// F stands for Freedom
 					let tempK = weatherData.main.feels_like;
 					let tempF = 1.8 * (tempK - 273) + 32;
-					
+
 					// https://openweathermap.org/api/air-pollution
 					let aqiScore = aqiData.list[0].main.aqi;
 
@@ -205,3 +223,52 @@ window.addEventListener("load", () => {
 		});
 	});
 });
+
+
+function dateStr() {
+	const today = new Date();
+	const year = today.getFullYear();
+	const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are zero-based, so we add 1
+	const day = String(today.getDate()).padStart(2, '0');
+	return `${year}-${month}-${day}`;
+}
+
+document.getElementById('share-btn').addEventListener('click', function(event) {
+	event.preventDefault(); // Prevent default anchor behavior
+    html2canvas(document.getElementById('capture')).then(function(canvas) {
+        // Convert the canvas to a data URL
+        canvas.toBlob(function(blob) {
+            // Check if the Web Share API is supported
+            if (navigator.share) {
+                const file = new File([blob], '12seasons-nyc-' + dateStr() + '.png', { type: 'image/png' });
+
+                navigator.share({
+                    title: '12seasons.nyc - ' + dateStr(),
+					text: '',
+                    files: [file],
+                })
+                .then(() => console.log('Successfully shared'))
+                .catch((error) => console.error('Error sharing:', error));
+            } else {
+                console.log('Web Share API is not supported on this browser.');
+                alert('Sharing is not supported in this browser.');
+            }
+        });
+    });
+});
+
+document.getElementById('download-btn').addEventListener('click', function(event) {
+	event.preventDefault(); // Prevent default anchor behavior
+    html2canvas(document.getElementById('capture')).then(function(canvas) {
+        // Create a data URL and trigger download
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL('image/png');
+        link.download = '12seasons-nyc-' + dateStr() + '.png'; // The filename for download
+        link.click();
+    });
+});
+
+/* Reveal share-btn if Web Share API is supported */
+if (navigator.canShare({ files })) {
+	document.getElementById('share-btn').style.display = 'inline-block';
+}
