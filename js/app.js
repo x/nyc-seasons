@@ -39,9 +39,6 @@ const seasonsIndexes = {
   "Actual Fall": 11,
 };
 
-var imageFile = null;
-var imageUrl = null;
-
 function getMeanAndStd(now) {
   let dayOfYear = Math.floor(
     (now - new Date(now.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24
@@ -223,7 +220,7 @@ window.addEventListener("load", () => {
           console.log(aqiData);
 
           let tempK = weatherData.main.feels_like;
-		  // F stands for Freedom
+          // F stands for Freedom
           let tempF = 1.8 * (tempK - 273) + 32;
           let aqiScore = aqiData.list[0].main.aqi;
 
@@ -241,8 +238,13 @@ window.addEventListener("load", () => {
 
           // Ensure DOM updates before running html2canvas
           requestAnimationFrame(() => {
-            html2canvas(document.getElementById("capture"))
+            html2canvas(document.getElementById("capture"), {
+              onclone: async function (doc) {
+                doc.getElementById("url").style = "display: block;";
+              },
+            })
               .then(function (canvas) {
+                // Now create a Blob and File from the updated canvas
                 return new Promise((resolve) => {
                   canvas.toBlob(function (blob) {
                     let imageFile = new File(
