@@ -187,7 +187,7 @@ window.addEventListener("load", () => {
 					// F stands for Freedom
 					let tempK = weatherData.main.feels_like;
 					let tempF = 1.8 * (tempK - 273) + 32;
-					
+
 					// https://openweathermap.org/api/air-pollution
 					let aqiScore = aqiData.list[0].main.aqi;
 
@@ -204,4 +204,34 @@ window.addEventListener("load", () => {
 					document.querySelector("#explainer").innerText = explainer;
 		});
 	});
+});
+
+
+function dateStr() {
+	const today = new Date();
+	const year = today.getFullYear();
+	const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are zero-based, so we add 1
+	const day = String(today.getDate()).padStart(2, '0');
+	return `${year}-${month}-${day}`;
+}
+
+document.getElementById('share-btn').addEventListener('click', function() {
+    html2canvas(document.getElementById('capture')).then(function(canvas) {
+        // Convert the canvas to a data URL
+        canvas.toBlob(function(blob) {
+            // Check if the Web Share API is supported
+            if (navigator.share) {
+                const file = new File([blob], '12seasons-nyc-' + dateStr() + '.png', { type: 'image/png' });
+
+                navigator.share({
+                    files: [file],
+                })
+                .then(() => console.log('Successfully shared'))
+                .catch((error) => console.error('Error sharing:', error));
+            } else {
+                console.log('Web Share API is not supported on this browser.');
+                alert('Sharing is not supported in this browser.');
+            }
+        });
+    });
 });
