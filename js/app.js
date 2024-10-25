@@ -215,7 +215,8 @@ function dateStr() {
 	return `${year}-${month}-${day}`;
 }
 
-document.getElementById('share-btn').addEventListener('click', function() {
+document.getElementById('share-btn').addEventListener('click', function(event) {
+	event.preventDefault(); // Prevent default anchor behavior
     html2canvas(document.getElementById('capture')).then(function(canvas) {
         // Convert the canvas to a data URL
         canvas.toBlob(function(blob) {
@@ -224,6 +225,8 @@ document.getElementById('share-btn').addEventListener('click', function() {
                 const file = new File([blob], '12seasons-nyc-' + dateStr() + '.png', { type: 'image/png' });
 
                 navigator.share({
+                    title: '12seasons.nyc - ' + dateStr(),
+					text: '',
                     files: [file],
                 })
                 .then(() => console.log('Successfully shared'))
@@ -233,5 +236,16 @@ document.getElementById('share-btn').addEventListener('click', function() {
                 alert('Sharing is not supported in this browser.');
             }
         });
+    });
+});
+
+document.getElementById('download-btn').addEventListener('click', function(event) {
+	event.preventDefault(); // Prevent default anchor behavior
+    html2canvas(document.getElementById('capture')).then(function(canvas) {
+        // Create a data URL and trigger download
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL('image/png');
+        link.download = '12seasons-nyc-' + dateStr() + '.png'; // The filename for download
+        link.click();
     });
 });
