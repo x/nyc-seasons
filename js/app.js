@@ -163,9 +163,27 @@ function getExplainerString(now, tempF, aqiScore) {
 	let amPm = now.getHours() < 12 ? "AM" : "PM";
 	let hour = now.getHours() % 12;
 	hour = hour === 0 ? 12 : hour;
-	let aboveBelow = tempDeviations > 0 ? "above" : "below";
 	let absTempDeviations = Math.abs(tempDeviations);
-	let str = `It's ${tempF.toFixed(1)}\u00B0F which is ${absTempDeviations.toFixed(1)} standard deviations ${aboveBelow} the mean of ${mean.toFixed(1)}\u00B0F for ${hour} ${amPm}, ${timeParts[1]} ${timeParts[2]}`;
+	let stddevPrefix = '';
+	if (absTempDeviations < 0.5) {
+		stddevPrefix = "a mere ";
+	}
+	if (absTempDeviations > 3) {
+		stddevPrefix = "an astonishing ";
+	}
+	let str = '';
+	if (absTempDeviations < 0.05) {
+		str = `It is almost exactly the temperature expected for ${hour} ${amPm} on ${timeParts[1]} ${timeParts[2]}. How funny.`;
+	} else {
+		let warmerColder = tempDeviations > 0 ? "warmer" : "colder";
+		str = `It is ${stddevPrefix}${absTempDeviations.toFixed(2)} standard deviations ${warmerColder} than expected for ${hour} ${amPm} on ${timeParts[1]} ${timeParts[2]}.`;
+		if (absTempDeviations > 2.5) {
+			str += ` You poor bastard.`;
+		}
+	}
+	if (aqiScore > 2) {
+		str += `\nThe air quality is "${describeAqi(aqiScore)}"`;
+	}
 	return str;
 }
 
