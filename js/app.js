@@ -173,10 +173,10 @@ function getExplainerString(now, tempF, aqiScore) {
 	}
 	let str = '';
 	if (absTempDeviations < 0.05) {
-		str = `It is almost exactly the temperature expected for ${hour} ${amPm} on ${timeParts[1]} ${timeParts[2]}. How funny.`;
+		str = `It is currently almost the exact temperature expected for ${timeParts[1]} ${timeParts[2]}. How funny.`;
 	} else {
 		let warmerColder = tempDeviations > 0 ? "warmer" : "colder";
-		str = `It is ${stddevPrefix}${absTempDeviations.toFixed(2)} standard deviations ${warmerColder} than expected for ${hour} ${amPm} on ${timeParts[1]} ${timeParts[2]}.`;
+		str = `It is currently ${stddevPrefix}${absTempDeviations.toFixed(2)} standard deviations ${warmerColder} than expected for ${timeParts[1]} ${timeParts[2]}.`;
 		if (absTempDeviations > 2.5) {
 			str += ` You poor bastard.`;
 		}
@@ -267,3 +267,8 @@ document.getElementById('download-btn').addEventListener('click', function(event
         link.click();
     });
 });
+
+/* Reveal share-btn if Web Share API is supported */
+if (navigator.canShare({ files })) {
+	document.getElementById('share-btn').style.display = 'inline-block';
+}
