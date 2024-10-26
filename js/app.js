@@ -194,7 +194,7 @@ function getExplainerString(now, tempF, aqiScore) {
       str += ` You poor bastard.`;
     }
   }
-  if (aqiScore > 2) {
+  if (aqiScore > 3) {
     str += `\nThe air quality is "${describeAqi(aqiScore)}"`;
   }
   return str;
