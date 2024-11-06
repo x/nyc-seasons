@@ -25,14 +25,14 @@ const astrologicalSubSeasons = {
 
 // Mapping to the list index.
 const seasonsIndexes = {
-  Winter: 0,
+  "Winter": 0,
   "Fool's Spring": 1,
   "Second Winter": 2,
   "Spring of Deception": 3,
   "Third Winter": 4,
   "The Pollening": 5,
   "Actual Spring": 6,
-  Summer: 7,
+  "Summer": 7,
   "Hell's Front Porch": 8,
   "False Fall": 9,
   "Second Summer": 10,
@@ -217,7 +217,6 @@ window.addEventListener("load", () => {
       fetch(aqiUrl)
         .then((response) => response.json())
         .then((aqiData) => {
-          console.log(aqiData);
 
           let tempK = weatherData.main.feels_like;
           // F stands for Freedom
@@ -226,14 +225,14 @@ window.addEventListener("load", () => {
 
           let now = new Date();
           let season = getNYCSeason(now, tempF, aqiScore);
+          let explainer = getExplainerString(now, tempF, aqiScore);
 
-          console.log(tempF, season);
+          console.log(tempF, aqiData, season, explainer);
 
           let seasonIndex = seasonsIndexes[season];
           let seasonLi = document.querySelectorAll("li")[seasonIndex];
           seasonLi.classList.add("current");
 
-          let explainer = getExplainerString(now, tempF, aqiScore);
           document.querySelector("#explainer").innerText = explainer;
 
           // Ensure DOM updates before running html2canvas
