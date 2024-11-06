@@ -227,6 +227,10 @@ window.addEventListener("load", () => {
           let season = getNYCSeason(now, tempF, aqiScore);
           let explainer = getExplainerString(now, tempF, aqiScore);
 
+          if (now.toDateString() === 'Wed Nov 06 2024') {
+            season = "Hell's Front Porch";
+          }
+
           console.log(tempF, aqiData, season, explainer);
 
           let seasonIndex = seasonsIndexes[season];
