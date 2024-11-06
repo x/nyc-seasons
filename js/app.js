@@ -190,7 +190,7 @@ function getExplainerString(now, tempF, aqiScore) {
     )} standard deviations ${warmerColder} than expected for ${timeParts[1]} ${
       timeParts[2]
     }.`;
-    if (absTempDeviations > 2.5) {
+    if (absTempDeviations > 3) {
       str += ` You poor bastard.`;
     }
   }
@@ -243,7 +243,7 @@ window.addEventListener("load", () => {
           requestAnimationFrame(() => {
             html2canvas(document.getElementById("capture"), {
               onclone: async function (doc) {
-                doc.getElementById("url").style = "display: block;";
+                // doc.getElementById("url").style = "display: block;";
               },
             })
               .then(function (canvas) {
