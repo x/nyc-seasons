@@ -10,7 +10,7 @@ const aqiUrl = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}
 // Seasons
 const astrologicalSubSeasons = {
   earlySpring: { start: "03-20", end: "04-19" },
-  midSpring: { start: "04-19", end: "05-19" },
+  midSpring: { start: "04-19", end: "05-22" },
   lateSpring: { start: "05-22", end: "06-21" },
   earlySummer: { start: "06-21", end: "07-21" },
   midSummer: { start: "07-21", end: "08-22" },
@@ -18,7 +18,7 @@ const astrologicalSubSeasons = {
   earlyFall: { start: "09-22", end: "10-22" },
   midFall: { start: "10-22", end: "11-21" },
   lateFall: { start: "11-21", end: "12-21" },
-  earlyWinter: { start: "00-21", end: "01-19" },
+  earlyWinter: { start: "12-21", end: "01-19" },
   midWinter: { start: "01-19", end: "02-18" },
   lateWinter: { start: "02-18", end: "03-20" },
 };
