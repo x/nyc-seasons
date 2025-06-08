@@ -151,19 +151,16 @@ function getNYCSeason(now, tempF, aqiScore) {
   );
 }
 
-function describeAqi(aqiScore) {
-  if (aqiScore === 1) {
-    return "Good";
-  } else if (aqiScore === 2) {
-    return "Fair";
-  } else if (aqiScore === 3) {
-    return "Moderate";
-  } else if (aqiScore === 4) {
-    return "Poor";
-  } else {
-    return "Very Poor";
-  }
-}
+const describeAqi = (aqiScore) =>
+  aqiScore === 1
+    ? "Good"
+    : aqiScore === 2
+    ? "Fair"
+    : aqiScore === 3
+    ? "Moderate"
+    : aqiScore === 4
+    ? "Poor"
+    : "Very Poor";
 
 function getExplainerString(now, tempF, aqiScore) {
   let { mean, std } = getMeanAndStd(now);
@@ -191,7 +188,7 @@ function getExplainerString(now, tempF, aqiScore) {
       timeParts[2]
     }.`;
     if (absTempDeviations > 3) {
-      str += ` You poor bastard.`;
+      str += " You poor bastard.";
     }
   }
   if (aqiScore > 3) {
@@ -208,98 +205,85 @@ function dateStr() {
   return `${year}-${month}-${day}`;
 }
 
-window.addEventListener("load", () => {
-  fetch(apiUrl)
+window.addEventListener("load", async () => {
+  const weatherData = fetch(apiUrl)
     .then((response) => response.json())
     .then((weatherData) => {
       console.log(weatherData);
 
-      fetch(aqiUrl)
-        .then((response) => response.json())
-        .then((aqiData) => {
+      const tempK = weatherData.main.feels_like;
+      // F stands for Freedom
+      const tempF = 1.8 * (tempK - 273) + 32;
 
-          let tempK = weatherData.main.feels_like;
-          // F stands for Freedom
-          let tempF = 1.8 * (tempK - 273) + 32;
-          let aqiScore = aqiData.list[0].main.aqi;
-
-          let now = new Date();
-          let season = getNYCSeason(now, tempF, aqiScore);
-          let explainer = getExplainerString(now, tempF, aqiScore);
-
-          if (now.toDateString() === 'Wed Nov 06 2024') {
-            season = "Hell's Front Porch";
-          }
-
-          console.log(tempF, aqiData, season, explainer);
-
-          let seasonIndex = seasonsIndexes[season];
-          let seasonLi = document.querySelectorAll("li")[seasonIndex];
-          seasonLi.classList.add("current");
-
-          document.querySelector("#explainer").innerText = explainer;
-
-          // Ensure DOM updates before running html2canvas
-          requestAnimationFrame(() => {
-            html2canvas(document.getElementById("capture"), {
-              onclone: async function (doc) {
-                // doc.getElementById("url").style = "display: block;";
-              },
-            })
-              .then(function (canvas) {
-                // Now create a Blob and File from the updated canvas
-                return new Promise((resolve) => {
-                  canvas.toBlob(function (blob) {
-                    let imageFile = new File(
-                      [blob],
-                      "12seasons-nyc-" + dateStr() + ".png",
-                      { type: "image/png" }
-                    );
-                    let imageUrl = URL.createObjectURL(blob); // Create URL from blob
-                    resolve({ imageFile, imageUrl });
-                  });
-                });
-              })
-              .then(({ imageFile, imageUrl }) => {
-                // Destructure imageFile and imageUrl
-
-                // Share button
-                if (
-                  navigator.canShare &&
-                  navigator.canShare({ files: [imageFile] })
-                ) {
-                  document.getElementById("share-btn").style.display =
-                    "inline-block";
-                  document
-                    .getElementById("share-btn")
-                    .addEventListener("click", function (event) {
-                      event.preventDefault(); // Prevent default anchor behavior
-                      navigator
-                        .share({
-                          title: "12seasons.nyc - " + dateStr(),
-                          files: [imageFile],
-                        })
-                        .then(() => console.log("Successfully shared"))
-                        .catch((error) =>
-                          console.error("Error sharing:", error)
-                        );
-                    });
-                }
-
-                // Download button
-                document.getElementById("download-btn").style.display =
-                  "inline-block";
-                document
-                  .getElementById("download-btn")
-                  .addEventListener("click", function (event) {
-                    event.preventDefault(); // Prevent default anchor behavior
-                    const link = document.createElement("a");
-                    link.href = imageUrl; // Use blob URL for download
-                    link.download = "12seasons-nyc-" + dateStr() + ".png"; // The filename for download
-                    link.click();
-                  });
-              });
-          });
-        });
+      return { tempF };
     });
+
+  const aqiData = fetch(aqiUrl)
+    .then((response) => response.json())
+    .then((aqiData) => {
+      const aqiScore = aqiData.list[0].main.aqi;
+
+      return { aqiScore };
+    });
+
+  // Load temperature and AQI data in parallel
+  const [{ tempF }, { aqiScore }] = await Promise.all([weatherData, aqiData]);
+
+  const now = new Date();
+
+  const season =
+    now.toDateString() === "Wed Nov 06 2024"
+      ? "Hell's Front Porch"
+      : getNYCSeason(now, tempF, aqiScore);
+
+  const explainer = getExplainerString(now, tempF, aqiScore);
+
+  console.log(tempF, aqiData, season, explainer);
+
+  const seasonIndex = seasonsIndexes[season];
+  const seasonLi = document.querySelectorAll("li")[seasonIndex];
+  seasonLi.classList.add("current");
+
+  document.querySelector("#explainer").innerText = explainer;
+
+  // Ensure DOM updates before running html2canvas
+  await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+
+  const canvas = await html2canvas(document.getElementById("capture"), {
+    onclone: (doc) => {
+      // doc.getElementById("url").style = "display: block;";
+    },
+  });
+  const blob = await new Promise((resolve) =>
+    canvas.toBlob((blob) => resolve(blob))
+  );
+  const imageFile = new File([blob], `12seasons-nyc-${dateStr()}.png`, {
+    type: "image/png",
+  });
+  const imageUrl = URL.createObjectURL(blob);
+
+  if (navigator.canShare?.({ files: [imageFile] })) {
+    document.getElementById("share-btn").style.display = "inline-block";
+    document.getElementById("share-btn").addEventListener("click", (event) => {
+      event.preventDefault(); // Prevent default anchor behavior
+
+      navigator
+        .share({
+          title: `12seasons.nyc - ${dateStr()}`,
+          files: [imageFile],
+        })
+        .then(() => console.log("Successfully shared"))
+        .catch((error) => console.error("Error sharing:", error));
+    });
+  }
+
+  // Download button
+  document.getElementById("download-btn").style.display = "inline-block";
+  document.getElementById("download-btn").addEventListener("click", (event) => {
+    event.preventDefault(); // Prevent default anchor behavior
+    const link = document.createElement("a");
+    link.href = imageUrl; // Use blob URL for download
+    link.download = `12seasons-nyc-${dateStr()}.png`; // The filename for download
+    link.click();
+  });
 });
