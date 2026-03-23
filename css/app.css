@@ -61,6 +61,14 @@ img {
 	border: 1px solid var(--table-border-color);
 }
 
+blockquote {
+	background-color: #fff3cd;
+	border-left: 4px solid #ffc107;
+	padding: 1rem;
+	border-radius: 0.25rem;
+	font-style: normal;
+}
+
 details summary {
 	color: unset;
 }

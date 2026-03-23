@@ -1,9 +1,9 @@
-// NYC - But actually Time Square...
-const lat = 40.7128;
-const lon = -73.985;
+// STL - Downtown St. Louis
+const lat = 38.627;
+const lon = -90.199;
 
 // API - Plz don't steal and do bad things with the key.
-const apiKey = "e1ac16beb06cba262e36e848533b3971";
+const apiKey = "bb6f810298c1f37137eed49c1d906a80";
 const apiUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}`;
 const aqiUrl = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`;
 
@@ -40,14 +40,14 @@ const seasonsIndexes = {
 };
 
 function getMeanAndStd(now) {
-  // Convert to NYC timezone to match historical data
-  let nycTime = new Date(
-    now.toLocaleString("en-US", { timeZone: "America/New_York" }),
+  // Convert to local timezone to match historical data
+  let localTime = new Date(
+    now.toLocaleString("en-US", { timeZone: "America/Chicago" }),
   );
   let dayOfYear = Math.floor(
-    (nycTime - new Date(nycTime.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24,
+    (localTime - new Date(localTime.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24,
   );
-  let dayHour = `${dayOfYear.toString().padStart(3, "0")}-${nycTime
+  let dayHour = `${dayOfYear.toString().padStart(3, "0")}-${localTime
     .getHours()
     .toString()
     .padStart(2, "0")}`;
@@ -67,12 +67,12 @@ function checkIfHot(now, tempF) {
 }
 
 function getAstrologicalSubSeason(now) {
-  // Convert to NYC timezone for consistency
-  let nycTime = new Date(
-    now.toLocaleString("en-US", { timeZone: "America/New_York" }),
+  // Convert to local timezone for consistency
+  let localTime = new Date(
+    now.toLocaleString("en-US", { timeZone: "America/Chicago" }),
   );
-  let day = nycTime.getDate();
-  let month = nycTime.getMonth();
+  let day = localTime.getDate();
+  let month = localTime.getMonth();
   let date = `${(month + 1).toString().padStart(2, "0")}-${day
     .toString()
     .padStart(2, "0")}`;
@@ -85,7 +85,7 @@ function getAstrologicalSubSeason(now) {
   throw new Error("Date not in any sub season: " + date);
 }
 
-function getNYCSeason(now, tempF, aqiScore) {
+function getSeason(now, tempF, aqiScore) {
   let isHot = checkIfHot(now, tempF);
   let isCold = checkIfCold(now, tempF);
   let isMid = !isHot && !isCold;
@@ -176,13 +176,13 @@ function describeAqi(aqiScore) {
 function getExplainerString(now, tempF, aqiScore) {
   let { mean, std } = getMeanAndStd(now);
   let tempDeviations = (tempF - mean) / std;
-  // Convert to NYC timezone for display
-  let nycTime = new Date(
-    now.toLocaleString("en-US", { timeZone: "America/New_York" }),
+  // Convert to local timezone for display
+  let localTime = new Date(
+    now.toLocaleString("en-US", { timeZone: "America/Chicago" }),
   );
-  let timeParts = nycTime.toString().split(" ");
-  let amPm = nycTime.getHours() < 12 ? "AM" : "PM";
-  let hour = nycTime.getHours() % 12;
+  let timeParts = localTime.toString().split(" ");
+  let amPm = localTime.getHours() < 12 ? "AM" : "PM";
+  let hour = localTime.getHours() % 12;
   hour = hour === 0 ? 12 : hour;
   let absTempDeviations = Math.abs(tempDeviations);
   let stddevPrefix = "";
@@ -235,7 +235,7 @@ window.addEventListener("load", () => {
           let aqiScore = aqiData.list[0].main.aqi;
 
           let now = new Date();
-          let season = getNYCSeason(now, tempF, aqiScore);
+          let season = getSeason(now, tempF, aqiScore);
           let explainer = getExplainerString(now, tempF, aqiScore);
 
           if (now.toDateString() === "Wed Nov 06 2024") {
@@ -263,7 +263,7 @@ window.addEventListener("load", () => {
                   canvas.toBlob(function (blob) {
                     let imageFile = new File(
                       [blob],
-                      "12seasons-nyc-" + dateStr() + ".png",
+                      "12seasons-stl-" + dateStr() + ".png",
                       { type: "image/png" },
                     );
                     let imageUrl = URL.createObjectURL(blob); // Create URL from blob
@@ -287,7 +287,7 @@ window.addEventListener("load", () => {
                       event.preventDefault(); // Prevent default anchor behavior
                       navigator
                         .share({
-                          title: "12seasons.nyc - " + dateStr(),
+                          title: "12seasons STL - " + dateStr(),
                           files: [imageFile],
                         })
                         .then(() => console.log("Successfully shared"))
@@ -306,7 +306,7 @@ window.addEventListener("load", () => {
                     event.preventDefault(); // Prevent default anchor behavior
                     const link = document.createElement("a");
                     link.href = imageUrl; // Use blob URL for download
-                    link.download = "12seasons-nyc-" + dateStr() + ".png"; // The filename for download
+                    link.download = "12seasons-stl-" + dateStr() + ".png"; // The filename for download
                     link.click();
                   });
               });
