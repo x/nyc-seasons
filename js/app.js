@@ -182,6 +182,10 @@ function getExplainerString(now, tempF, aqiScore) {
     now.toLocaleString("en-US", { timeZone: "America/New_York" }),
   );
   let timeParts = nycTime.toString().split(" ");
+  // Link the date to the explore page for that month/day.
+  let dateLink = `<a class="secondary" href="/explore/?month=${
+    nycTime.getMonth() + 1
+  }&day=${nycTime.getDate()}">${timeParts[1]} ${timeParts[2]}</a>`;
   let amPm = nycTime.getHours() < 12 ? "AM" : "PM";
   let hour = nycTime.getHours() % 12;
   hour = hour === 0 ? 12 : hour;
@@ -195,14 +199,12 @@ function getExplainerString(now, tempF, aqiScore) {
   }
   let str = "";
   if (absTempDeviations < 0.05) {
-    str = `It is currently almost the exact temperature expected for ${timeParts[1]} ${timeParts[2]}. How funny.`;
+    str = `It is currently almost the exact temperature expected for ${dateLink}. How funny.`;
   } else {
     let warmerColder = tempDeviations > 0 ? "warmer" : "colder";
     str = `It is currently ${stddevPrefix}${absTempDeviations.toFixed(
       2,
-    )} standard deviations ${warmerColder} than expected for ${timeParts[1]} ${
-      timeParts[2]
-    }.`;
+    )} standard deviations ${warmerColder} than expected for ${dateLink}.`;
     if (absTempDeviations > 3) {
       str += ` You poor bastard.`;
     }
@@ -249,7 +251,10 @@ window.addEventListener("load", () => {
           let seasonLi = document.querySelectorAll("li")[seasonIndex];
           seasonLi.classList.add("current");
 
-          document.querySelector("#explainer").innerText = explainer;
+          document.querySelector("#explainer").innerHTML = explainer.replace(
+            /\n/g,
+            "<br>",
+          );
 
           // Ensure DOM updates before running html2canvas
           requestAnimationFrame(() => {

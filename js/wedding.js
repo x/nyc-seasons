@@ -12,9 +12,6 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December",
 ];
 
-// The "typical day" summary describes a wedding-ish evening window.
-const EVENING = { start: 17, end: 22 }; // 5 PM .. 10 PM
-
 const METRICS = {
   temp: { label: "Temperature", kind: "box", unit: "°", data: () => WEDDING_TEMPS },
   feels: { label: "Feels Like", kind: "box", unit: "°", data: () => WEDDING_FEELS },
@@ -275,7 +272,7 @@ function renderMain() {
   if (chart) chart.destroy();
   chart = new ApexCharts(document.getElementById("chart"), options);
   chart.render();
-  renderSummary();
+  renderHeader();
 }
 
 // ---------- click an hour -> modal with one bar per year ----------
@@ -354,7 +351,7 @@ function renderYearBars(hourIndex) {
   openModal();
 }
 
-// ---------- "typical day" summary ----------
+// ---------- header + explainer ----------
 
 function ordinal(n) {
   const s = ["th", "st", "nd", "rd"],
@@ -362,39 +359,57 @@ function ordinal(n) {
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
-function iqrAt(dataset, key, h) {
-  const v = cellValues(dataset, key, h);
-  if (v.length < 4) return null;
-  const s = [...v].sort((a, b) => a - b);
-  return [Math.round(quantile(s, 0.25)), Math.round(quantile(s, 0.75))];
-}
-
-function eveningPrecipChance(key) {
-  let sum = 0,
-    n = 0;
-  for (let h = EVENING.start; h <= EVENING.end; h++) {
-    const v = cellValues(WEDDING_PRECIP, key, h);
-    if (v.length) {
-      sum += v.filter((x) => x > 0).length / v.length;
-      n++;
+// Interquartile actual-temperature range (°F) pooled across an hour span.
+function pooledIQR(key, hStart, hEnd) {
+  const day = WEDDING_TEMPS.data[key];
+  if (!day) return null;
+  const { i0, i1 } = yearsInRange();
+  const arr = [];
+  for (let h = hStart; h <= hEnd; h++)
+    for (let yi = i0; yi <= i1; yi++) {
+      const v = day[h][yi];
+      if (v !== null) arr.push(v);
     }
-  }
-  return n ? Math.round((100 * sum) / n) : null;
+  if (arr.length < 4) return null;
+  arr.sort((a, b) => a - b);
+  return [Math.round(quantile(arr, 0.25)), Math.round(quantile(arr, 0.75))];
 }
 
-function renderSummary() {
+// Average hourly chance of precip during the day/evening (9 AM–11 PM): the
+// mean, over those hours, of the share of years that hour was wet. This reads
+// like a weather-app "chance of rain" -- unlike the probability of *any* wet
+// hour across the whole window, which compounds to ~30% for nearly every day.
+function dayRainChance(key) {
+  const day = WEDDING_PRECIP.data[key];
+  if (!day) return null;
+  let sum = 0,
+    hours = 0;
+  for (let h = 9; h <= 23; h++) {
+    const vals = cellValues(WEDDING_PRECIP, key, h);
+    if (!vals.length) continue;
+    sum += vals.filter((v) => v > 0).length / vals.length;
+    hours++;
+  }
+  return hours ? Math.round((100 * sum) / hours) : null;
+}
+
+const range = (r) => `${r[0]}–${r[1]}°`;
+
+function renderHeader() {
   const { m, d, key } = selectedMMDD();
   const md = `${MONTHS[m - 1]} ${ordinal(d)}`;
-  const t5 = iqrAt(WEDDING_TEMPS, key, EVENING.start);
-  const t10 = iqrAt(WEDDING_TEMPS, key, EVENING.end);
-  const p = eveningPrecipChance(key);
-  let s = `For a typical ${md}`;
-  if (t5 && t10)
-    s += `, at 5 PM the temperature is ${t5[0]}–${t5[1]}° and by 10 PM it's ${t10[0]}–${t10[1]}°`;
-  s += ".";
-  if (p !== null)
-    s += ` The typical chance of precipitation through the evening (5–10 PM) is ${p}%.`;
-  document.getElementById("summary").textContent = s;
+  document.getElementById("title-date").textContent = md;
+  document.title = `New York on ${md}`;
+
+  const day = pooledIQR(key, 9, 17); // 9 AM – 5 PM
+  const eve = pooledIQR(key, 18, 23); // 6 PM – 11 PM
+  const rain = dayRainChance(key);
+  const parts = [];
+  if (day) parts.push(`${range(day)} during the day`);
+  if (eve) parts.push(`${range(eve)} in the evening`);
+  let s = parts.length ? `Typically ${parts.join(" and ")}` : "Typically";
+  if (rain !== null) s += `, with a ${rain}% chance of rain`;
+  document.getElementById("explainer").textContent = s + ".";
 }
 
 // ---------- controls ----------
@@ -416,6 +431,23 @@ function syncDays() {
   const n = daysInMonth(m);
   fillOptions(sel, Array.from({ length: n }, (_, i) => i + 1));
   sel.value = Math.min(prev, n);
+}
+
+// ---------- URL params (?month=4&day=10) ----------
+
+function readParams() {
+  const q = new URLSearchParams(location.search);
+  const m = parseInt(q.get("month"), 10);
+  const d = parseInt(q.get("day"), 10);
+  if (m >= 1 && m <= 12) document.getElementById("month").value = m;
+  syncDays();
+  if (d >= 1 && d <= daysInMonth(+document.getElementById("month").value))
+    document.getElementById("day").value = d;
+}
+
+function writeParams() {
+  const { m, d } = selectedMMDD();
+  history.replaceState(null, "", `?month=${m}&day=${d}`);
 }
 
 function setMode(next) {
@@ -444,13 +476,18 @@ function init() {
   document.getElementById("yearEnd").value = y1;
   syncDays();
   document.getElementById("day").value = 15;
+  readParams(); // ?month=&day= overrides the defaults
 
+  const onChange = () => {
+    renderMain();
+    writeParams();
+  };
   document.getElementById("month").addEventListener("change", () => {
     syncDays();
-    renderMain();
+    onChange();
   });
   ["day", "yearStart", "yearEnd"].forEach((id) =>
-    document.getElementById(id).addEventListener("change", renderMain),
+    document.getElementById(id).addEventListener("change", onChange),
   );
   document.querySelectorAll(".tabs a").forEach((a) =>
     a.addEventListener("click", (e) => {
