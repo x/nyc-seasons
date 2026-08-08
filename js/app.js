@@ -40,15 +40,16 @@ const seasonsIndexes = {
 };
 
 function getMeanAndStd(now) {
-  // Convert to NYC timezone to match historical data
-  let nycTime = new Date(
-    now.toLocaleString("en-US", { timeZone: "America/New_York" }),
-  );
   let dayOfYear = Math.floor(
-    (nycTime - new Date(nycTime.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24,
+    (Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) -
+      Date.UTC(now.getUTCFullYear(), 0, 0)) /
+      1000 /
+      60 /
+      60 /
+      24,
   );
-  let dayHour = `${dayOfYear.toString().padStart(3, "0")}-${nycTime
-    .getHours()
+  let dayHour = `${dayOfYear.toString().padStart(3, "0")}-${now
+    .getUTCHours()
     .toString()
     .padStart(2, "0")}`;
   let mean = temps[dayHour].mean;
