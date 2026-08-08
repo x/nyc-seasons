@@ -219,6 +219,10 @@ function renderMain() {
   const yb =
     cfg.kind === "box" ? sharedBoxBounds(key) : niceBounds(0, hi, 10, true);
 
+  // On phones, run the plot to the edges: fewer ticks, smaller labels, and
+  // almost no internal gutter. Desktop keeps its roomier defaults.
+  const narrow = window.innerWidth <= 600;
+
   const options = {
     series: [{ type: cfg.kind === "box" ? "boxPlot" : "bar", name: cfg.label, data }],
     chart: {
@@ -245,12 +249,13 @@ function renderMain() {
       type: "datetime",
       min: hourTs(m, d, 0),
       max: hourTs(m, d, 0) + 24 * 3600000,
-      tickAmount: 12, // one label every 2 hours
+      tickAmount: narrow ? 6 : 12, // every 4h on phones, every 2h otherwise
       labels: {
         datetimeUTC: true,
         format: "h TT",
         rotate: 0,
-        style: { colors: "#555" },
+        hideOverlappingLabels: true,
+        style: { colors: "#555", ...(narrow ? { fontSize: "10px" } : {}) },
       },
       tooltip: { enabled: false },
     },
@@ -261,10 +266,14 @@ function renderMain() {
       forceNiceScale: false,
       labels: {
         formatter: (v) => Math.round(v) + cfg.unit,
-        style: { colors: "#555" },
+        style: { colors: "#555", ...(narrow ? { fontSize: "10px" } : {}) },
       },
     },
-    grid: { borderColor: "#eee", strokeDashArray: 3 },
+    grid: {
+      borderColor: "#eee",
+      strokeDashArray: 3,
+      ...(narrow ? { padding: { left: 0, right: 2, top: 0, bottom: 0 } } : {}),
+    },
     annotations: { xaxis: daylightAnnotations(m, d) },
     tooltip: { shared: false, x: { format: "h TT" } },
   };
@@ -505,6 +514,16 @@ function init() {
   });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeModal();
+  });
+
+  // Re-render only when crossing the phone/desktop breakpoint.
+  let wasNarrow = window.innerWidth <= 600;
+  window.addEventListener("resize", () => {
+    const now = window.innerWidth <= 600;
+    if (now !== wasNarrow) {
+      wasNarrow = now;
+      renderMain();
+    }
   });
 
   renderMain();

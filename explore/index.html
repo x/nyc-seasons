@@ -70,6 +70,17 @@
             #hour-modal header {
                 margin-bottom: 0.5rem;
             }
+            /* On phones, tighten the page and let the chart reach the edges. */
+            @media (max-width: 600px) {
+                .container {
+                    padding-left: 0.5rem;
+                    padding-right: 0.5rem;
+                }
+                #chart {
+                    margin-left: -0.5rem;
+                    margin-right: -0.5rem;
+                }
+            }
         </style>
     </head>
     <body>
