@@ -56,6 +56,8 @@ function sharedBoxBounds(key) {
 let mode = "temp";
 let chart = null;
 let modalChart = null;
+let modalHour = 0; // hour whose modal is open
+let modalTab = "dist"; // "dist" (distribution) | "years" (history)
 
 // ---------- data helpers ----------
 
@@ -232,9 +234,9 @@ function renderMain() {
       toolbar: { show: false },
       animations: { enabled: false },
       events: {
-        dataPointSelection: (e, ctx, c) => renderYearBars(c.dataPointIndex),
+        dataPointSelection: (e, ctx, c) => openHourModal(c.dataPointIndex),
         click: (e, ctx, c) => {
-          if (c && c.dataPointIndex >= 0) renderYearBars(c.dataPointIndex);
+          if (c && c.dataPointIndex >= 0) openHourModal(c.dataPointIndex);
         },
       },
     },
@@ -275,7 +277,32 @@ function renderMain() {
       ...(narrow ? { padding: { left: 0, right: 2, top: 0, bottom: 0 } } : {}),
     },
     annotations: { xaxis: daylightAnnotations(m, d) },
-    tooltip: { shared: false, x: { format: "h TT" } },
+    tooltip:
+      cfg.kind === "box"
+        ? {
+            shared: false,
+            // Tukey box tooltip, with Q1/Q3 spelled out as percentiles.
+            custom: ({ seriesIndex, dataPointIndex, w }) => {
+              const pt = w.config.series[seriesIndex].data[dataPointIndex];
+              const y = pt.y;
+              const u = cfg.unit;
+              const row = (l, v) =>
+                `<div style="display:flex;justify-content:space-between;gap:1.25rem;padding:1px 0;">` +
+                `<span style="color:#888;">${l}</span>` +
+                `<span style="font-weight:600;">${Math.round(v)}${u}</span></div>`;
+              return (
+                `<div style="padding:6px 10px;font-size:12px;line-height:1.35;">` +
+                `<div style="font-weight:600;margin-bottom:2px;">${formatHour(new Date(pt.x).getUTCHours())}</div>` +
+                row("Maximum", y[4]) +
+                row("75th pct", y[3]) +
+                row("Median", y[2]) +
+                row("25th pct", y[1]) +
+                row("Minimum", y[0]) +
+                `</div>`
+              );
+            },
+          }
+        : { shared: false, x: { format: "h TT" } },
   };
 
   if (chart) chart.destroy();
@@ -284,7 +311,7 @@ function renderMain() {
   renderHeader();
 }
 
-// ---------- click an hour -> modal with one bar per year ----------
+// ---------- click an hour -> modal (Distribution / History tabs) ----------
 
 function formatHour(h) {
   const ap = h < 12 ? "AM" : "PM";
@@ -306,32 +333,240 @@ function closeModal() {
   }
 }
 
-function renderYearBars(hourIndex) {
+// Values for the open hour, in the selected year range (precip: wet hours only).
+function modalValues() {
+  const values = cellValues(METRICS[mode].data(), selectedMMDD().key, modalHour);
+  return mode === "precip" ? values.filter((v) => v > 0) : values;
+}
+
+function openHourModal(hourIndex) {
+  modalHour = hourIndex;
+  modalTab = "dist";
+  setModalTab("dist");
+  openModal();
+}
+
+function setModalTab(tab) {
+  modalTab = tab;
+  document.querySelectorAll(".modal-tabs a").forEach((a) => {
+    const on = a.dataset.mtab === tab;
+    a.classList.toggle("active", on);
+    if (on) a.setAttribute("aria-current", "page");
+    else a.removeAttribute("aria-current");
+  });
+  const { m, d } = selectedMMDD();
+  document.getElementById("modal-title").textContent =
+    `${METRICS[mode].label} at ${formatHour(modalHour)} · ${MONTHS[m - 1]} ${ordinal(d)}`;
+  if (tab === "dist") renderDistribution();
+  else renderHistory();
+}
+
+// Gaussian kernel density estimate -> smooth points for a spline area.
+function normPdf(z) {
+  return Math.exp(-0.5 * z * z) / Math.sqrt(2 * Math.PI);
+}
+
+function kde(values) {
+  const n = values.length;
+  const mean = values.reduce((a, b) => a + b, 0) / n;
+  const std = Math.sqrt(values.reduce((a, b) => a + (b - mean) ** 2, 0) / n);
+  const h = std > 0 ? 1.06 * std * Math.pow(n, -0.2) : 1; // Silverman's rule
+  const lo = Math.min(...values),
+    hi = Math.max(...values);
+  const pad = Math.max(2 * h, (hi - lo) * 0.05);
+  const start = lo - pad,
+    end = hi + pad,
+    steps = 96;
+  const pts = [];
+  for (let i = 0; i <= steps; i++) {
+    const x = start + ((end - start) * i) / steps;
+    let s = 0;
+    for (const xi of values) s += normPdf((x - xi) / h);
+    pts.push({ x: Math.round(x * 10) / 10, y: s / (n * h) });
+  }
+  return { pts, mean, std };
+}
+
+// Histogram of the raw sample: {x: bin center, y: count of years}.
+function histogramCounts(values, binCount) {
+  const lo = Math.min(...values),
+    hi = Math.max(...values);
+  const width = (hi - lo) / binCount || 1;
+  const bins = new Array(binCount).fill(0);
+  for (const v of values) {
+    let i = Math.floor((v - lo) / width);
+    if (i >= binCount) i = binCount - 1;
+    bins[i]++;
+  }
+  return bins.map((c, i) => ({
+    x: Math.round((lo + (i + 0.5) * width) * 10) / 10,
+    y: c,
+  }));
+}
+
+function vLine(x, label = "", opts = {}) {
+  return {
+    x,
+    strokeDashArray: opts.solid ? 0 : 4,
+    borderColor: opts.solid ? "#2b4a63" : opts.faint ? "#c2ced9" : "#9fb3c8",
+    borderWidth: opts.solid ? 1.5 : 1,
+    label: {
+      text: label,
+      orientation: "horizontal",
+      position: "top",
+      offsetY: opts.offsetY || 0, // stagger to avoid label collisions
+      borderWidth: 0,
+      style: { background: "transparent", color: "#888", fontSize: "10px" },
+    },
+  };
+}
+
+function renderDistribution() {
   const cfg = METRICS[mode];
-  const { m, d, key } = selectedMMDD();
-  const day = cfg.data().data[key];
-  if (!day) return;
+  const unit = cfg.histUnit || cfg.unit;
+  const summaryEl = document.getElementById("modal-summary");
+  const values = modalValues();
+  if (values.length < 5) {
+    if (modalChart) modalChart.destroy(), (modalChart = null);
+    document.getElementById("modal-chart").innerHTML = "";
+    summaryEl.textContent = "Not enough data — widen the year range.";
+    return;
+  }
+
+  const { pts } = kde(values);
+  const bars = histogramCounts(values, 12);
+  const s = [...values].sort((a, b) => a - b);
+  const r = Math.round;
+  const p10 = r(quantile(s, 0.1)),
+    p25 = r(quantile(s, 0.25)),
+    p50 = r(quantile(s, 0.5)),
+    p75 = r(quantile(s, 0.75)),
+    p90 = r(quantile(s, 0.9));
+  const narrow = window.innerWidth <= 600;
+
+  const options = {
+    // Faded sample histogram (counts) behind the smooth KDE area.
+    series: [
+      { name: "Years", type: "column", data: bars },
+      { name: "density", type: "area", data: pts },
+    ],
+    chart: {
+      type: "line",
+      height: 320,
+      fontFamily: "inherit",
+      toolbar: { show: false },
+      animations: { enabled: false },
+    },
+    stroke: { curve: "smooth", width: [0, 2] },
+    fill: {
+      type: ["solid", "gradient"],
+      opacity: [0.3, 0.3],
+      gradient: { opacityFrom: 0.4, opacityTo: 0.05 },
+    },
+    colors: ["#9fb3c8", "#3b6ea5"],
+    plotOptions: { bar: { columnWidth: "95%" } },
+    dataLabels: { enabled: false },
+    legend: { show: false },
+    xaxis: {
+      type: "numeric",
+      min: pts[0].x,
+      max: pts[pts.length - 1].x,
+      tickAmount: narrow ? 5 : 6,
+      labels: {
+        formatter: (v) => Math.round(v) + unit,
+        style: { colors: "#777", ...(narrow ? { fontSize: "10px" } : {}) },
+      },
+      tooltip: { enabled: false },
+    },
+    yaxis: [
+      {
+        seriesName: "Years",
+        min: 0,
+        tickAmount: 4,
+        forceNiceScale: true,
+        labels: {
+          formatter: (v) => Math.round(v),
+          style: { colors: "#bbb", ...(narrow ? { fontSize: "10px" } : {}) },
+        },
+      },
+      { seriesName: "density", show: false, min: 0 },
+    ],
+    grid: {
+      borderColor: "#eee",
+      strokeDashArray: 3,
+      // Headroom at the top so the raised percentile labels don't clip.
+      padding: narrow ? { left: 0, right: 2, top: 12 } : { top: 12 },
+    },
+    annotations: {
+      xaxis: [
+        vLine(p10, "10th", { faint: true, offsetY: -8 }),
+        vLine(p25), // 25th line, unlabeled
+        vLine(p50, "median", { solid: true, offsetY: -8 }),
+        vLine(p75), // 75th line, unlabeled
+        vLine(p90, "90th", { faint: true, offsetY: -8 }),
+      ],
+    },
+    tooltip: { enabled: false },
+  };
+
+  if (modalChart) modalChart.destroy();
+  modalChart = new ApexCharts(document.getElementById("modal-chart"), options);
+  modalChart.render();
+
+  summaryEl.textContent =
+    `50% of the time it's ${p25}–${p75}${unit}, ` +
+    `and 80% of the time it's ${p10}–${p90}${unit}.`;
+}
+
+function renderHistory() {
+  const cfg = METRICS[mode];
+  const day = cfg.data().data[selectedMMDD().key];
+  const unit = cfg.histUnit || cfg.unit;
+  const summaryEl = document.getElementById("modal-summary");
+  if (!day) {
+    summaryEl.textContent = "";
+    return;
+  }
   const y0 = WEDDING_TEMPS.meta.y0;
   const { i0, i1 } = yearsInRange();
   const years = [],
     vals = [];
   for (let yi = i0; yi <= i1; yi++) {
-    const v = day[hourIndex][yi];
+    const v = day[modalHour][yi];
     if (v === null || v === undefined) continue;
     years.push(y0 + yi);
     vals.push(v);
   }
-  if (!vals.length) return;
 
-  const unit = cfg.histUnit || cfg.unit;
-  document.getElementById("modal-title").textContent =
-    `${cfg.label} at ${formatHour(hourIndex)} · ${MONTHS[m - 1]} ${ordinal(d)}`;
+  // Record extremes for this hour on this date.
+  const hourStr = formatHour(modalHour);
+  if (!vals.length) {
+    summaryEl.textContent = "";
+  } else {
+    let lo = 0,
+      hi = 0;
+    vals.forEach((v, i) => {
+      if (v < vals[lo]) lo = i;
+      if (v > vals[hi]) hi = i;
+    });
+    if (mode === "precip") {
+      summaryEl.textContent =
+        vals[hi] > 0
+          ? `The wettest ${hourStr} on record was ${years[hi]} (${vals[hi]} mm).`
+          : `No measurable rain at ${hourStr} on this date on record.`;
+    } else {
+      summaryEl.textContent =
+        `The coldest ${hourStr} on record was ${years[lo]} at ${Math.round(vals[lo])}°, ` +
+        `and the hottest was ${years[hi]} at ${Math.round(vals[hi])}°.`;
+    }
+  }
 
+  const narrow = window.innerWidth <= 600;
   const options = {
     series: [{ name: cfg.label, data: vals }],
     chart: {
       type: "bar",
-      height: 340,
+      height: 320,
       fontFamily: "inherit",
       toolbar: { show: false },
       animations: { enabled: false },
@@ -341,23 +576,26 @@ function renderYearBars(hourIndex) {
     dataLabels: { enabled: false },
     xaxis: {
       categories: years,
-      tickAmount: Math.min(11, years.length - 1),
+      tickAmount: narrow ? 6 : Math.min(11, years.length - 1),
       labels: { rotate: -45, style: { colors: "#777", fontSize: "10px" } },
     },
     yaxis: {
       labels: {
         formatter: (v) => Math.round(v) + unit,
-        style: { colors: "#777" },
+        style: { colors: "#777", ...(narrow ? { fontSize: "10px" } : {}) },
       },
     },
-    grid: { borderColor: "#eee", strokeDashArray: 3 },
+    grid: {
+      borderColor: "#eee",
+      strokeDashArray: 3,
+      ...(narrow ? { padding: { left: 0, right: 2 } } : {}),
+    },
     tooltip: { y: { formatter: (v) => v + unit } },
   };
 
   if (modalChart) modalChart.destroy();
   modalChart = new ApexCharts(document.getElementById("modal-chart"), options);
   modalChart.render();
-  openModal();
 }
 
 // ---------- header + explainer ----------
@@ -461,7 +699,7 @@ function writeParams() {
 
 function setMode(next) {
   mode = next;
-  document.querySelectorAll(".tabs a").forEach((a) => {
+  document.querySelectorAll(".tabs:not(.modal-tabs) a").forEach((a) => {
     const on = a.dataset.mode === mode;
     a.classList.toggle("active", on);
     if (on) a.setAttribute("aria-current", "page");
@@ -498,13 +736,19 @@ function init() {
   ["day", "yearStart", "yearEnd"].forEach((id) =>
     document.getElementById(id).addEventListener("change", onChange),
   );
-  document.querySelectorAll(".tabs a").forEach((a) =>
+  document.querySelectorAll(".tabs:not(.modal-tabs) a").forEach((a) =>
     a.addEventListener("click", (e) => {
       e.preventDefault();
       setMode(a.dataset.mode);
     }),
   );
 
+  document.querySelectorAll(".modal-tabs a").forEach((a) =>
+    a.addEventListener("click", (e) => {
+      e.preventDefault();
+      setModalTab(a.dataset.mtab);
+    }),
+  );
   document.getElementById("modal-close").addEventListener("click", (e) => {
     e.preventDefault();
     closeModal();

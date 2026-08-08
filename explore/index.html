@@ -14,13 +14,19 @@
                 margin-top: 0.5rem;
                 justify-content: flex-end;
             }
-            .tabs ul {
+            /* nav.tabs beats Pico's default nav ul/li spacing so the last tab's
+               right edge lines up with the content column (dropdowns / modal X). */
+            nav.tabs ul {
                 padding: 0;
                 margin: 0;
-                gap: 0.5rem;
+                gap: 0.9rem;
+            }
+            nav.tabs li {
+                padding: 0;
             }
             .tabs a {
-                padding: 0.2rem 0.3rem;
+                padding: 0.2rem 0;
+                margin: 0;
                 color: var(--secondary);
                 text-decoration: none;
             }
@@ -48,6 +54,13 @@
                 align-items: end;
                 margin-top: 1rem;
             }
+            /* Date (Month/Day) and range (From/To) each stay together, so when
+               the row can't fit all four the range wraps as a unit (2 + 2). */
+            .control-group {
+                display: flex;
+                gap: 0.4rem 0.75rem;
+                flex: 1 1 15rem;
+            }
             .controls label {
                 flex: 1 1 7rem;
                 margin: 0;
@@ -70,6 +83,15 @@
             #hour-modal header {
                 margin-bottom: 0.5rem;
             }
+            .modal-tabs {
+                justify-content: flex-end;
+                margin: 0 0 0.25rem;
+            }
+            .modal-summary {
+                color: var(--secondary);
+                font-size: 0.9rem;
+                margin: 0.5rem 0 0;
+            }
             /* On phones, tighten the page and let the chart reach the edges. */
             @media (max-width: 600px) {
                 .container {
@@ -79,6 +101,15 @@
                 #chart {
                     margin-left: -0.5rem;
                     margin-right: -0.5rem;
+                }
+                #hour-modal article {
+                    width: 96vw;
+                    padding-left: 0.5rem;
+                    padding-right: 0.5rem;
+                }
+                #modal-chart {
+                    margin-left: -0.25rem;
+                    margin-right: -0.25rem;
                 }
             }
         </style>
@@ -101,10 +132,14 @@
             <div id="chart"></div>
 
             <div class="controls">
-                <label>Month <select id="month"></select></label>
-                <label>Day <select id="day"></select></label>
-                <label>From <select id="yearStart"></select></label>
-                <label>To <select id="yearEnd"></select></label>
+                <div class="control-group">
+                    <label>Month <select id="month"></select></label>
+                    <label>Day <select id="day"></select></label>
+                </div>
+                <div class="control-group">
+                    <label>From <select id="yearStart"></select></label>
+                    <label>To <select id="yearEnd"></select></label>
+                </div>
             </div>
         </main>
 
@@ -119,7 +154,14 @@
                     ></a>
                     <strong id="modal-title"></strong>
                 </header>
+                <nav class="tabs modal-tabs">
+                    <ul>
+                        <li><a href="#" data-mtab="dist" class="active">Distribution</a></li>
+                        <li><a href="#" data-mtab="years">History</a></li>
+                    </ul>
+                </nav>
                 <div id="modal-chart"></div>
+                <p id="modal-summary" class="modal-summary"></p>
             </article>
         </dialog>
 
