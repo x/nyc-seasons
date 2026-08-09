@@ -3,9 +3,15 @@
 // chosen NYC calendar day, with a daylight/golden-hour background. Click an
 // hour for its full histogram. Tabs switch the metric.
 
-// Times Square-ish, matching the main page.
-const LAT = 40.7128;
-const LON = -73.985;
+// A page may set window.PLACE before loading this script to point the daylight
+// math and the header at another city. Defaults to NYC (Times Square-ish).
+const PLACE = (typeof window !== "undefined" && window.PLACE) || {
+  name: "New York",
+  lat: 40.7128,
+  lon: -73.985,
+};
+const LAT = PLACE.lat;
+const LON = PLACE.lon;
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -668,7 +674,7 @@ function renderHeader() {
   const { m, d, key } = selectedMMDD();
   const md = `${MONTHS[m - 1]} ${ordinal(d)}`;
   document.getElementById("title-date").textContent = md;
-  document.title = `New York on ${md}`;
+  document.title = `${PLACE.name} on ${md}`;
 
   const day = pooledIQR(key, 9, 17); // 9 AM – 5 PM
   const eve = pooledIQR(key, 18, 23); // 6 PM – 11 PM

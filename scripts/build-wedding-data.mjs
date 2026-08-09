@@ -1,22 +1,25 @@
-// Bakes the wedding-planner datasets from nyc_weather.csv.
-//   node scripts/build-wedding-data.mjs
+// Bakes the explore datasets from an OpenWeatherMap history CSV.
+//   node scripts/build-wedding-data.mjs [input.csv] [output-prefix]
+//   node scripts/build-wedding-data.mjs                       # NYC (defaults)
+//   node scripts/build-wedding-data.mjs jupiter_weather.csv js/jupiter
 //
-// Output: js/wedding-temps.js, js/wedding-feels.js and js/wedding-precip.js, each
-//   { meta:{y0,y1}, data: { "MM-DD": [ /*24 hours*/ [ /*value per year, null if missing*/ ] ] } }
-// Keyed by NYC LOCAL month/day/hour (daylight & "the temp at 5pm" are local),
-// using the per-row `timezone` offset so DST is handled. Duplicate rows per
-// timestamp (multiple weather descriptions) are collapsed to one reading.
+// Output: <prefix>-temps.js, <prefix>-feels.js, <prefix>-precip.js, each
+//   { meta:{y0,y1}, data: { "MM-DD": [ /*24 hours*/ [ /*value per year, null*/ ] ] } }
+// Keyed by LOCAL month/day/hour (daylight & "the temp at 5pm" are local), using
+// the per-row `timezone` offset so DST is handled. Duplicate rows per timestamp
+// (multiple weather descriptions) are collapsed to one reading. The year range
+// is detected from the data. The globals are always WEDDING_* so the same
+// wedding.js drives any city's page.
 import fs from "fs";
 import readline from "readline";
 
-const Y0 = 1979,
-  Y1 = 2022,
-  NY = Y1 - Y0 + 1;
+const inputCsv = process.argv[2] || "nyc_weather.csv";
+const prefix = process.argv[3] || "js/wedding";
 
 const byDt = new Map(); // dt(unix) -> { temp, feels, rain, snow, off }
 
 const rl = readline.createInterface({
-  input: fs.createReadStream("nyc_weather.csv"),
+  input: fs.createReadStream(inputCsv),
 });
 let first = true;
 rl.on("line", (l) => {
@@ -40,6 +43,23 @@ rl.on("line", (l) => {
   }
 });
 rl.on("close", () => {
+  const local = (dt, off) => new Date((dt + off) * 1000); // read fields as UTC
+
+  // Detect the local-time year range, ignoring boundary stubs: shifting UTC to
+  // local pulls a few hours into the prior/next year, which would otherwise add
+  // a near-empty year to the dropdown. Keep years with real coverage.
+  const yearCount = new Map();
+  for (const [dt, v] of byDt.entries()) {
+    const y = local(dt, v.off).getUTCFullYear();
+    yearCount.set(y, (yearCount.get(y) || 0) + 1);
+  }
+  const years = [...yearCount.keys()]
+    .filter((y) => yearCount.get(y) >= 100)
+    .sort((a, b) => a - b);
+  const Y0 = years[0],
+    Y1 = years[years.length - 1],
+    NY = Y1 - Y0 + 1;
+
   const temps = {},
     feels = {},
     precip = {};
@@ -51,9 +71,9 @@ rl.on("close", () => {
     return o[k];
   };
   for (const [dt, v] of byDt.entries()) {
-    const d = new Date((dt + v.off) * 1000); // shift to NYC local, read as UTC
+    const d = local(dt, v.off);
     const y = d.getUTCFullYear();
-    if (y < Y0 || y > Y1) continue;
+    if (y < Y0 || y > Y1) continue; // skip boundary stubs
     const key = `${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(
       d.getUTCDate(),
     ).padStart(2, "0")}`;
@@ -65,20 +85,16 @@ rl.on("close", () => {
     ensure(precip, key)[h][yi] = Math.round((v.rain + v.snow) * 100) / 100;
   }
   const meta = { y0: Y0, y1: Y1 };
-  fs.writeFileSync(
-    "js/wedding-temps.js",
-    "const WEDDING_TEMPS = " + JSON.stringify({ meta, data: temps }) + ";\n",
-  );
-  fs.writeFileSync(
-    "js/wedding-feels.js",
-    "const WEDDING_FEELS = " + JSON.stringify({ meta, data: feels }) + ";\n",
-  );
-  fs.writeFileSync(
-    "js/wedding-precip.js",
-    "const WEDDING_PRECIP = " + JSON.stringify({ meta, data: precip }) + ";\n",
-  );
+  const write = (name, varName, data) =>
+    fs.writeFileSync(
+      `${prefix}-${name}.js`,
+      `const ${varName} = ` + JSON.stringify({ meta, data }) + ";\n",
+    );
+  write("temps", "WEDDING_TEMPS", temps);
+  write("feels", "WEDDING_FEELS", feels);
+  write("precip", "WEDDING_PRECIP", precip);
 
-  // Report global extremes so the page can pick fixed y-axis bounds.
+  // Report global extremes (useful for sanity checks / axis bounds).
   const ext = (o) => {
     let lo = Infinity,
       hi = -Infinity;
@@ -91,7 +107,7 @@ rl.on("close", () => {
           }
     return [lo, hi];
   };
-  console.log("wrote temps/feels/precip.js");
+  console.log(`wrote ${prefix}-{temps,feels,precip}.js  years ${Y0}-${Y1}`);
   console.log("temp extremes  ", ext(temps));
   console.log("feels extremes ", ext(feels));
   console.log("precip extremes", ext(precip));
