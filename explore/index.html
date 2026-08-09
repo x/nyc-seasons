@@ -92,15 +92,45 @@
                 font-size: 0.9rem;
                 margin: 0.5rem 0 0;
             }
-            /* On phones, tighten the page and let the chart reach the edges. */
+            /* On phones, fit the whole page in the viewport (no scroll) so a
+               touch on the plot is always a tap, never a fighting-with-scroll
+               gesture. The chart flexes to fill whatever height is left. */
             @media (max-width: 600px) {
+                html,
+                body {
+                    height: 100%;
+                }
                 .container {
-                    padding-left: 0.5rem;
-                    padding-right: 0.5rem;
+                    display: flex;
+                    flex-direction: column;
+                    height: 100vh; /* fallback */
+                    height: 100dvh; /* excludes the Safari toolbar */
+                    padding: 0.5rem;
+                }
+                .container > hgroup {
+                    margin: 0 0 0.25rem;
+                    flex: 0 0 auto;
+                }
+                .container hgroup h1 {
+                    font-size: 1.6rem;
+                    margin-bottom: 0.1rem;
+                }
+                .container hgroup h2 {
+                    font-size: 0.95rem;
+                }
+                .tabs {
+                    margin-top: 0.25rem;
+                    flex: 0 0 auto;
                 }
                 #chart {
-                    margin-left: -0.5rem;
-                    margin-right: -0.5rem;
+                    flex: 1 1 auto;
+                    min-height: 0; /* allow it to shrink to fit */
+                    overflow: hidden; /* box height stays = flex size, not content */
+                    margin: 0.25rem -0.5rem 0; /* bleed to the side edges */
+                }
+                .controls {
+                    margin-top: 0.6rem;
+                    flex: 0 0 auto;
                 }
                 #hour-modal article {
                     width: 96vw;

@@ -225,11 +225,31 @@ function renderMain() {
   // almost no internal gutter. Desktop keeps its roomier defaults.
   const narrow = window.innerWidth <= 600;
 
+  // Size the header first, then give ApexCharts an exact pixel height so the
+  // phone layout fills the viewport with no scrolling. We derive the height
+  // from the *other* sections (header/tabs/controls) rather than from #chart
+  // itself: ApexCharts stamps a min-height on #chart, so measuring it would
+  // feed back on the flex layout. The siblings are stable.
+  renderHeader();
+  const chartEl = document.getElementById("chart");
+  let chartH = 460;
+  if (narrow) {
+    const container = chartEl.parentElement;
+    const cs = getComputedStyle(container);
+    let used = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+    for (const el of container.children) {
+      const s = getComputedStyle(el);
+      used += parseFloat(s.marginTop) + parseFloat(s.marginBottom);
+      if (el !== chartEl) used += el.getBoundingClientRect().height;
+    }
+    chartH = Math.max(220, Math.floor(container.clientHeight - used - 2));
+  }
+
   const options = {
     series: [{ type: cfg.kind === "box" ? "boxPlot" : "bar", name: cfg.label, data }],
     chart: {
       type: cfg.kind === "box" ? "boxPlot" : "bar",
-      height: 460,
+      height: chartH,
       fontFamily: "inherit",
       toolbar: { show: false },
       animations: { enabled: false },
@@ -306,9 +326,11 @@ function renderMain() {
   };
 
   if (chart) chart.destroy();
-  chart = new ApexCharts(document.getElementById("chart"), options);
+  chart = new ApexCharts(chartEl, options);
   chart.render();
-  renderHeader();
+  // ApexCharts stamps an inline min-height that inflates the flex item; clear
+  // it so #chart keeps exactly the height the layout allotted (no overflow).
+  if (narrow) chartEl.style.minHeight = "0px";
 }
 
 // ---------- click an hour -> modal (Distribution / History tabs) ----------
@@ -760,14 +782,12 @@ function init() {
     if (e.key === "Escape") closeModal();
   });
 
-  // Re-render only when crossing the phone/desktop breakpoint.
-  let wasNarrow = window.innerWidth <= 600;
+  // Re-fit on resize: breakpoint change, rotation, or the mobile browser
+  // toolbar showing/hiding (which changes the available height).
+  let resizeTimer;
   window.addEventListener("resize", () => {
-    const now = window.innerWidth <= 600;
-    if (now !== wasNarrow) {
-      wasNarrow = now;
-      renderMain();
-    }
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(renderMain, 150);
   });
 
   renderMain();
