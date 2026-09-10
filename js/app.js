@@ -9,18 +9,19 @@ const aqiUrl = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}
 
 // Seasons
 const astrologicalSubSeasons = {
-  earlySpring: { start: "03-20", end: "04-19" },
-  midSpring: { start: "04-19", end: "05-22" },
-  lateSpring: { start: "05-22", end: "06-21" },
-  earlySummer: { start: "06-21", end: "07-21" },
-  midSummer: { start: "07-21", end: "08-22" },
-  lateSummer: { start: "08-22", end: "09-22" },
-  earlyFall: { start: "09-22", end: "10-22" },
-  midFall: { start: "10-22", end: "11-21" },
-  lateFall: { start: "11-21", end: "12-21" },
-  earlyWinter: { start: "12-21", end: "01-19" },
-  midWinter: { start: "01-19", end: "02-18" },
-  lateWinter: { start: "02-18", end: "03-20" },
+  earlySpring: { start: 320, end: 419 },
+  midSpring: { start: 419, end: 522 },
+  lateSpring: { start: 522, end: 621 },
+  earlySummer: { start: 621, end: 721 },
+  midSummer: { start: 721, end: 822 },
+  lateSummer: { start: 822, end: 922 },
+  earlyFall: { start: 922, end: 1022 },
+  midFall: { start: 1022, end: 1121 },
+  lateFall: { start: 1121, end: 1221 },
+  earlyWinter: { start: 1221, end: 1232 },
+  earlyWinterTwo: { start: 101, end: 119 },
+  midWinter: { start: 119, end: 218 },
+  lateWinter: { start: 218, end: 320 },
 };
 
 // Mapping to the list index.
@@ -74,9 +75,8 @@ function getAstrologicalSubSeason(now) {
   );
   let day = nycTime.getDate();
   let month = nycTime.getMonth();
-  let date = `${(month + 1).toString().padStart(2, "0")}-${day
-    .toString()
-    .padStart(2, "0")}`;
+  let date = ((month + 1)*100) + day;
+
   for (let subSeason in astrologicalSubSeasons) {
     let subSeasonRange = astrologicalSubSeasons[subSeason];
     if (date >= subSeasonRange.start && date < subSeasonRange.end) {
@@ -95,7 +95,7 @@ function getNYCSeason(now, tempF, aqiScore) {
 
   if (season.match("Winter")) {
     if (isCold || isMid) {
-      if (season === "earlyWinter" || season === "midWinter") {
+      if (season === "earlyWinter" || season === "earlyWinterTwo" || season === "midWinter") {
         return "Winter";
       }
       if (season === "lateWinter") {
